@@ -10,7 +10,7 @@ public class KotlinFileRobot @PublishedApi internal constructor() :
     AdvancedDeclarationsRobot(ImportsCollector(), mutableListOf()) {
     private var packageName: String? = null
 
-    public fun `package`(name: String) {
+    public fun `package`(name: String?) {
         packageName = name
     }
 

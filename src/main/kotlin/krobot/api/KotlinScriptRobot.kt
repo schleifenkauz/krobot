@@ -10,7 +10,7 @@ public class KotlinScriptRobot @PublishedApi internal constructor() :
     BlockRobot(ImportsCollector()) {
     private var packageName: String? = null
 
-    public fun Package(name: String) {
+    public fun `package`(name: String?) {
         packageName = name
     }
 

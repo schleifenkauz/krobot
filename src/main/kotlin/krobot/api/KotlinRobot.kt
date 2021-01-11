@@ -23,6 +23,11 @@ public abstract class KotlinRobot internal constructor(
         return import
     }
 
+    public fun import(element: TypeElement): Type {
+        import(element.toString())
+        return type(element.simpleName.toString())
+    }
+
     @OptIn(ExperimentalStdlibApi::class)
     public inline fun <reified T : Any> import(): Type = import(typeOf<T>())
 
