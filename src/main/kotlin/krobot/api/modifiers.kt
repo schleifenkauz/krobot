@@ -10,7 +10,11 @@ public open class Modifiers internal constructor(@PublishedApi internal val modi
 
 private fun Modifiers.add(modifier: Modifier) = Modifiers(modifiers + modifier)
 
-private fun Modifiers.add(modifier: String) = add(krobot.ast.KeywordModifier(modifier))
+private fun Modifiers.add(modifier: String) = add(KeywordModifier(modifier))
+
+private fun singleModifier(modifier: String) = Modifiers(listOf(KeywordModifier(modifier)))
+
+public val noModifiers: Modifiers get() = Modifiers()
 
 public val Modifiers.public: Modifiers
     get() = add("public")
@@ -73,5 +77,68 @@ public val Modifiers.`val`: Modifiers
 public val Modifiers.`var`: Modifiers
     get() = add("var")
 
+public val public: Modifiers
+    get() = singleModifier("public")
+public val protected: Modifiers
+    get() = singleModifier("protected")
+public val private: Modifiers
+    get() = singleModifier("private")
+public val internal: Modifiers
+    get() = singleModifier("internal")
+public val expect: Modifiers
+    get() = singleModifier("expect")
+public val actual: Modifiers
+    get() = singleModifier("actual")
+public val final: Modifiers
+    get() = singleModifier("final")
+public val open: Modifiers
+    get() = singleModifier("open")
+public val abstract: Modifiers
+    get() = singleModifier("abstract")
+public val sealed: Modifiers
+    get() = singleModifier("sealed")
+public val const: Modifiers
+    get() = singleModifier("const")
+public val external: Modifiers
+    get() = singleModifier("external")
+public val override: Modifiers
+    get() = singleModifier("override")
+public val lateinit: Modifiers
+    get() = singleModifier("lateinit")
+public val tailrec: Modifiers
+    get() = singleModifier("tailrec")
+public val vararg: Modifiers
+    get() = singleModifier("vararg")
+public val noinline: Modifiers
+    get() = singleModifier("noinline")
+public val crossinline: Modifiers
+    get() = singleModifier("crossinline")
+public val suspend: Modifiers
+    get() = singleModifier("suspend")
+public val inner: Modifiers
+    get() = singleModifier("inner")
+public val enum: Modifiers
+    get() = singleModifier("enum")
+public val annotation: Modifiers
+    get() = singleModifier("annotation")
+public val `fun`: Modifiers
+    get() = singleModifier("`fun`")
+public val companion: Modifiers
+    get() = singleModifier("companion")
+public val inline: Modifiers
+    get() = singleModifier("inline")
+public val infix: Modifiers
+    get() = singleModifier("infix")
+public val operator: Modifiers
+    get() = singleModifier("operator")
+public val data: Modifiers
+    get() = singleModifier("data")
+public val `val`: Modifiers
+    get() = singleModifier("`val`")
+public val `var`: Modifiers
+    get() = singleModifier("`var`")
+
 public fun Modifiers.`@`(clazz: String, vararg arguments: Expr): Modifiers =
     add(AnnotationModifier(clazz, arguments.asList()))
+
+public fun `@`(clazz: String, vararg arguments: Expr): Modifiers = noModifiers.`@`(clazz, *arguments)

@@ -6,6 +6,8 @@ package krobot.api
 
 import krobot.ast.*
 
+public val Any.t: Type get() = UncheckedType(toString())
+
 public fun type(raw: Identifier, arguments: List<TypeProjection>): Type = GenericType(raw, arguments)
 
 public fun type(raw: Identifier, vararg arguments: TypeProjection): Type = type(raw, arguments.asList())

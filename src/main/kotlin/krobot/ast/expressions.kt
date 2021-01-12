@@ -13,6 +13,12 @@ public typealias Identifier = String
 
 public sealed class Expr : BlockElement()
 
+internal data class UncheckedExpr(private val str: String) : Expr() {
+    override fun append(out: IndentedWriter) {
+        out.append(str)
+    }
+}
+
 internal data class Literal(private val string: String) : Expr() {
     override fun append(out: IndentedWriter) {
         out.append(string)
@@ -215,7 +221,7 @@ internal data class SubjectWhenExpr(private val subject: Expr, private val entri
     }
 }
 
-internal object DummyExpr: Expr() {
+internal object DummyExpr : Expr() {
     override fun append(out: IndentedWriter) {
         throw AssertionError("Cannot append dummy expr")
     }

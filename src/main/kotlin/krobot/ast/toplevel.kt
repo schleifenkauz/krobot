@@ -5,8 +5,7 @@
 package krobot.ast
 
 import krobot.ast.IndentedWriter.NewLine
-import java.io.File
-import java.io.OutputStream
+import java.io.*
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -23,10 +22,12 @@ public data class Import internal constructor(
 
 public abstract class TopLevelElement internal constructor() : Element() {
     internal abstract val packageName: String?
+    internal abstract val defaultExtension: String
 
-    public fun saveTo(output: Appendable) {
+    public fun <A> saveTo(output: A) where A : Appendable, A : Closeable {
         val writer = IndentedWriter(output)
-        writer.append(this)
+        append(writer)
+        output.close()
     }
 
     public fun saveTo(output: OutputStream) {
@@ -41,14 +42,21 @@ public abstract class TopLevelElement internal constructor() : Element() {
         saveTo(Files.newBufferedWriter(path))
     }
 
-    public fun saveTo(sourceRoot: File, fileName: String) {
-        val full = packageName.orEmpty().split(".").fold(sourceRoot, File::resolve).resolve(fileName)
-        saveTo(full)
+    public fun saveToSourceRoot(sourceRoot: File, fileName: String) {
+        val dir = packageName.orEmpty().split(".").fold(sourceRoot, File::resolve)
+        dir.mkdirs()
+        val file = dir.resolve(fileName.addExtension())
+        saveTo(file)
     }
 
-    public fun saveTo(sourceRoot: Path, fileName: String) {
-        val full = packageName.orEmpty().split(".").fold(sourceRoot, Path::resolve).resolve(fileName)
-        saveTo(full)
+    private fun String.addExtension() = if (contains('.')) this else "$this$defaultExtension"
+
+    public fun saveToSourceRoot(sourceRoot: Path, fileName: String) {
+        saveToSourceRoot(sourceRoot.toFile(), fileName)
+    }
+
+    public fun saveToSourceRoot(sourceRoot: String, fileName: String) {
+        saveToSourceRoot(File(sourceRoot), fileName)
     }
 }
 
@@ -57,6 +65,9 @@ public data class KotlinFile @PublishedApi internal constructor(
     private val imports: List<Import>,
     internal val declarations: List<Declaration>
 ) : TopLevelElement() {
+    override val defaultExtension: String
+        get() = ".kt"
+
     override fun append(out: IndentedWriter) = with(out) {
         join("package ", packageName)
         join(imports, NewLine, prefix = NewLine)
@@ -69,9 +80,36 @@ public data class KotlinScript @PublishedApi internal constructor(
     private val imports: List<Import>,
     private val elements: List<BlockElement>
 ) : TopLevelElement() {
+    override val defaultExtension: String
+        get() = ".kts"
+
     override fun append(out: IndentedWriter) = with(out) {
         join("package ", packageName)
         join(imports, NewLine, postfix = NewLine)
         join(elements, NewLine)
+    }
+}
+
+public class NamedTopLevelElement(private val name: String, private val wrapped: TopLevelElement) : TopLevelElement() {
+    override val packageName: String?
+        get() = wrapped.packageName
+
+    override val defaultExtension: String
+        get() = wrapped.defaultExtension
+
+    override fun append(out: IndentedWriter) {
+        wrapped.append(out)
+    }
+
+    public fun saveToSourceRoot(sourceRoot: File) {
+        saveToSourceRoot(sourceRoot, name)
+    }
+
+    public fun saveToSourceRoot(sourceRoot: Path) {
+        saveToSourceRoot(sourceRoot, name)
+    }
+
+    public fun saveToSourceRoot(sourceRoot: String) {
+        saveToSourceRoot(sourceRoot, name)
     }
 }

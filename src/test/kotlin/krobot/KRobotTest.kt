@@ -19,12 +19,17 @@ class KRobotTest {
                     private.`val`.parameter("wrapped") of type("List", "Int")
                 )
                 .implements(type("List", "Int"), by = get("wrapped"))
+                .implements(type("Complex", type("A"), type("B")))
                 .extends("Any", emptyList()) body {
                 inline.`fun`(
+                    listOf(invariant("T") lowerBound "Any"),
                     "f",
                     "x" of "Int" default lit(3),
                     "l" of type("List", "Int"),
-                    crossinline.parameter("block") of import<Robot>().functionType(type("Int"), returnType = type("Int"))
+                    crossinline.parameter("block") of import<Robot>().functionType(
+                        type("Int"),
+                        returnType = type("Int")
+                    )
                 ) returnType "Int" body {
                     +call("println", get("x"))
                     +`if`(get("x") eq lit(3)).then {
@@ -52,6 +57,8 @@ class KRobotTest {
                         }
                     }
                 }
+                private.constructor("test" of "Int").delegate("test".e * lit(2))
+                private.`fun`("f")
                 public.`class`("Inner")
             }
         }

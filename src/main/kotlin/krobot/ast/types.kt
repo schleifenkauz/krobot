@@ -61,3 +61,9 @@ internal data class NullableType(internal val wrapped: Type) : Type() {
         append('?')
     }
 }
+
+internal data class UncheckedType(private val str: String): Type() {
+    override fun append(out: IndentedWriter) {
+        out.append(str)
+    }
+}

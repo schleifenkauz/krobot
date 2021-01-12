@@ -20,15 +20,23 @@ public val `this`: Expr get() = get("this")
 public fun `this`(scope: String): Expr = get("this@$scope")
 public val `super`: Expr get() = get("super")
 
+public val Any?.e: Expr get() = UncheckedExpr(toString())
+
 public infix fun Expr.select(name: Identifier): Expr = PropertyAccess(this, name)
 
 public fun get(name: Identifier): Expr = PropertyAccess(null, name)
 
-public fun call(name: Identifier, typeArguments: List<Type> = emptyList(), arguments: List<Expr> = emptyList()): Expr =
+public fun call(name: Identifier, typeArguments: List<Type>, arguments: List<Expr>): Expr =
     FunctionCall(null, name, typeArguments, arguments)
 
+public fun call(name: Identifier, typeArguments: List<Type>, vararg arguments: Expr): Expr =
+    call(name, typeArguments, arguments.asList())
+
+public fun call(name: Identifier, arguments: List<Expr>): Expr =
+    call(name, emptyList(), arguments)
+
 public fun call(name: Identifier, vararg arguments: Expr): Expr =
-    FunctionCall(null, name, emptyList(), arguments.asList())
+    call(name, arguments.asList())
 
 public operator fun String.invoke(
     typeArguments: List<Type> = emptyList(),
@@ -41,9 +49,25 @@ public operator fun String.invoke(vararg arguments: Expr): Expr = invoke(argumen
 
 public fun Expr.call(
     name: Identifier,
-    typeArguments: List<Type> = emptyList(),
-    arguments: List<Expr> = emptyList()
+    typeArguments: List<Type>,
+    arguments: List<Expr>
 ): Expr = FunctionCall(this, name, typeArguments, arguments)
+
+public fun Expr.call(
+    name: Identifier,
+    typeArguments: List<Type>,
+    vararg arguments: Expr
+): Expr = call(name, typeArguments, arguments.asList())
+
+public fun Expr.call(
+    name: Identifier,
+    arguments: List<Expr>
+): Expr = this.call(name, emptyList(), arguments)
+
+public fun Expr.call(name: Identifier, vararg arguments: Expr): Expr =
+    this.call(name, arguments.asList())
+
+public infix fun Expr.call(name: Identifier): Expr = call(name, emptyList<Type>())
 
 public inline fun KotlinRobot.closure(parameters: List<Parameter>, block: BlockRobot.() -> Unit): Expr {
     val body = makeBody(imports, block)

@@ -135,6 +135,7 @@ public class AdvancedProperty @PublishedApi internal constructor(
     @PublishedApi internal var setter: Setter? = null
 ) : BasicProperty(imports, modifiers, valOrVar, name, type, receiver, initializer) {
     override fun append(out: IndentedWriter) = with(out) {
+        super.append(out)
         join(NewLine, getter)
         join(NewLine, setter)
     }
@@ -143,8 +144,8 @@ public class AdvancedProperty @PublishedApi internal constructor(
 public data class Parameter @PublishedApi internal constructor(
     private val name: Identifier,
     private val modifiers: List<Modifier> = emptyList(),
-    private val type: Type? = null,
-    private val defaultValue: Expr? = null
+    val type: Type? = null,
+    val defaultValue: Expr? = null
 ) : Element() {
     override fun append(out: IndentedWriter) = with(out) {
         join(modifiers, Space, postfix = Space)
@@ -226,8 +227,8 @@ public data class ClassDefinition internal constructor(
     @PublishedApi internal val imports: ImportsCollector,
     private val modifiers: List<Modifier>,
     private val declarationType: String,
-    private val name: Identifier,
-    private val typeParameters: List<TypeParameter>,
+    @PublishedApi internal val name: Identifier,
+    internal val typeParameters: MutableList<TypeParameter> = mutableListOf(),
     internal var constructorModifiers: List<Modifier> = emptyList(),
     internal var constructorParameters: List<Parameter> = emptyList(),
     internal val supertypes: MutableList<Supertype> = mutableListOf(),
