@@ -6,27 +6,44 @@ package krobot
 
 import krobot.api.*
 import org.junit.jupiter.api.Test
-import java.awt.Robot
 
 class KRobotTest {
     @Test
-    fun test() {
+    fun sample1() {
+        val f = kotlinFile {
+            `package`("com.example")
+            internal.`object`("Main").body {
+                `@`("JvmStatic").`fun`("main", "args" of "Array<String>").body {
+                    `val`("msg") initializedWith `when`("args".e.select("size")) {
+                        lit(0) then lit("This is not possible...")
+                        lit(1) then lit("Oh no, you provided no arguments")
+                        `in`(lit(2)..lit(5)) then lit("The number of arguments is ok")
+                        `else` then lit("Too many arguments")
+                    }
+                }
+            }
+        }
+        println(f.pretty())
+    }
+
+    @Test
+    fun sample2() {
         val file = kotlinFile {
-            `package`("krobot")
-            `class`("ExampleClass", `in`("T"))
+            import("kotlin.random.Random")
+            `package`("foo.bar")
+            abstract.`class`("ExampleClass", `in`("T"))
                 .primaryConstructor(
                     `@`("PublishedApi").internal,
                     private.`val`.parameter("wrapped") of type("List", "Int")
                 )
                 .implements(type("List", "Int"), by = get("wrapped"))
-                .implements(type("Complex", type("A"), type("B")))
                 .extends("Any", emptyList()) body {
                 inline.`fun`(
                     listOf(invariant("T") lowerBound "Any"),
                     "f",
                     "x" of "Int" default lit(3),
                     "l" of type("List", "Int"),
-                    crossinline.parameter("block") of import<Robot>().functionType(
+                    crossinline.parameter("block") of import<java.awt.Robot>().functionType(
                         type("Int"),
                         returnType = type("Int")
                     )
@@ -57,8 +74,8 @@ class KRobotTest {
                         }
                     }
                 }
-                private.constructor("test" of "Int").delegate("test".e * lit(2))
-                private.`fun`("f")
+                private.constructor("test" of "Int").delegate("listOf"("test".e, "Random".e.call("nextInt")))
+                abstract.`fun`("f") returnType "Int"
                 public.`class`("Inner")
             }
         }

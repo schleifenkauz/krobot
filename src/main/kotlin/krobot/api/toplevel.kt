@@ -6,7 +6,7 @@ package krobot.api
 
 import krobot.ast.*
 
-public infix fun Import.As(alias: String): Import = copy(alias = alias)
+public infix fun Import.`as`(alias: String): Import = copy(alias = alias)
 
 public infix fun TopLevelElement.named(name: Identifier): NamedTopLevelElement = NamedTopLevelElement(name, this)
 

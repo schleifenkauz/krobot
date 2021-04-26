@@ -50,6 +50,8 @@ public class SubjectWhenExprRobot @PublishedApi internal constructor(
         add(SubjectWhenEntry(null, Body(listOf(body))))
     }
 
+    public val `else`: Expr get() = "else".e
+
     public inline infix fun `else`(block: BlockRobot.() -> Unit) {
         add(SubjectWhenEntry(null, makeBody(imports, block)))
     }
