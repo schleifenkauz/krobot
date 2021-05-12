@@ -38,18 +38,21 @@ public abstract class BasicDeclarationsRobot @PublishedApi internal constructor(
 
     public fun Type.`fun`(name: String, vararg parameters: Parameter): Fun = `fun`(emptyList(), name, parameters.asList())
 
-    public fun Modifiers.`class`(name: String, typeParameters: List<TypeParameter>): ClassDefinition =
-        add(ClassDefinition(imports, modifiers, "class", name, typeParameters.toMutableList()))
+    public fun Modifiers.`class`(name: String, typeParameters: List<TypeParameter>): ClassDefinition<DeclarationType.Class> =
+        add(ClassDefinition(imports, modifiers, DeclarationType.Class, name, typeParameters.toMutableList()))
 
-    public fun Modifiers.`class`(name: String, vararg typeParameters: TypeParameter): ClassDefinition =
+    public fun Modifiers.`class`(name: String, vararg typeParameters: TypeParameter): ClassDefinition<DeclarationType.Class> =
         `class`(name, typeParameters.asList())
 
-    public fun Modifiers.`interface`(name: String, typeParameters: List<TypeParameter>): ClassDefinition =
-        add(ClassDefinition(imports, modifiers, "interface", name, typeParameters.toMutableList()))
+    public fun Modifiers.`interface`(name: String, typeParameters: List<TypeParameter>): ClassDefinition<DeclarationType.Interface> =
+        add(ClassDefinition(imports, modifiers, DeclarationType.Interface, name, typeParameters.toMutableList()))
 
-    public fun Modifiers.`interface`(name: String, vararg typeParameters: TypeParameter): ClassDefinition =
+    public fun Modifiers.`interface`(name: String, vararg typeParameters: TypeParameter): ClassDefinition<DeclarationType.Interface> =
         `interface`(name, typeParameters.asList())
 
-    public fun Modifiers.`object`(name: String): ClassDefinition =
-        add(ClassDefinition(imports, modifiers, "object", name, mutableListOf()))
+    public fun Modifiers.`object`(name: String): ClassDefinition<DeclarationType.Object> =
+        add(ClassDefinition(imports, modifiers, DeclarationType.Object, name))
+
+    public fun Modifiers.enum(name: String): ClassDefinition<DeclarationType.Enum> =
+        add(ClassDefinition(imports, modifiers, DeclarationType.Enum, name, enumEntries = mutableListOf()))
 }

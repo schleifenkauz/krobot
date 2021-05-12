@@ -223,15 +223,52 @@ internal data class Supertype(val type: Type, val arguments: List<Expr>?, val de
     }
 }
 
-public data class ClassDefinition internal constructor(
+public interface HasPrimaryConstructor: DeclarationType
+public interface HasTypeParameters: DeclarationType
+public interface CanImplement: DeclarationType
+public interface CanExtend: CanImplement
+
+public sealed interface DeclarationType {
+    public object Interface: HasTypeParameters, CanImplement {
+        override fun toString(): String = "interface"
+    }
+
+    public object Class: HasTypeParameters, CanExtend, HasPrimaryConstructor {
+        override fun toString(): String = "class"
+    }
+
+    public object Object: CanExtend {
+        override fun toString(): String = "object"
+    }
+
+    public object Enum : CanImplement, HasPrimaryConstructor {
+        override fun toString(): String = "enum class"
+    }
+}
+
+@PublishedApi
+internal data class EnumEntry(
+    val name: Identifier,
+    val arguments: List<Expr>,
+    val declarations: List<Declaration>?
+): Element() {
+    override fun append(out: IndentedWriter) = with(out) {
+        append(name)
+        join(arguments.ifEmpty { null }, prefix = "(", postfix = ")")
+        if (declarations != null) block(declarations)
+    }
+}
+
+public data class ClassDefinition<out T: DeclarationType> internal constructor(
     @PublishedApi internal val imports: ImportsCollector,
     private val modifiers: List<Modifier>,
-    private val declarationType: String,
+    private val declarationType: T,
     @PublishedApi internal val name: Identifier,
     internal val typeParameters: MutableList<TypeParameter> = mutableListOf(),
     internal var constructorModifiers: List<Modifier> = emptyList(),
     internal var constructorParameters: List<Parameter> = emptyList(),
     internal val supertypes: MutableList<Supertype> = mutableListOf(),
+    @PublishedApi internal var enumEntries: List<EnumEntry>? = null,
     @PublishedApi internal var declarations: List<Declaration>? = null
 ) : Declaration() {
     override fun append(out: IndentedWriter) = with(out) {
@@ -245,7 +282,18 @@ public data class ClassDefinition internal constructor(
         join(constructorParameters, ", ", "(", ")")
         join(supertypes, ", ", prefix = ": ")
         space()
-        if (declarations != null) block(declarations!!)
+        if (enumEntries != null || declarations != null) {
+            appendLine("{")
+            indented {
+                join(enumEntries, separator = NewLine)
+                if (declarations != null) {
+                    if (enumEntries != null) appendLine(";")
+                    join(declarations, separator = NewLine)
+                }
+            }
+            appendLine()
+            append("}")
+        }
     }
 }
 

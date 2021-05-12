@@ -12,16 +12,19 @@ public fun Fun.parameters(parameters: List<Parameter>): Fun = apply {
 }
 
 public fun Fun.parameters(vararg parameters: Parameter): Fun = parameters(parameters.asList())
+
 public infix fun Fun.receiver(type: Type): Fun = apply {
     receiver = type
 }
 
 public infix fun Fun.receiver(raw: String): Fun = receiver(type(raw))
+
 public infix fun Fun.returnType(type: Type): Fun = apply {
     returnType = type
 }
 
-public infix fun Fun.returnType(raw: String): Fun = receiver(type(raw))
+public infix fun Fun.returnType(raw: String): Fun = returnType(type(raw))
+
 public infix fun Fun.body(block: BlockRobot.() -> Unit): Fun = apply {
     val imports = imports
     body = Block(makeBody(imports, block))

@@ -5,49 +5,68 @@ import krobot.ast.*
 /* ---------------------------------------
 Classes
   --------------------------------------- */
-public fun ClassDefinition.typeParameters(parameters: List<TypeParameter>): ClassDefinition = apply {
+public fun <C : ClassDefinition<HasTypeParameters>> C.typeParameters(parameters: List<TypeParameter>): C = apply {
     typeParameters.addAll(parameters)
 }
 
-public fun ClassDefinition.typeParameters(vararg typeParameter: TypeParameter): ClassDefinition =
+public fun <C : ClassDefinition<HasTypeParameters>> C.typeParameters(vararg typeParameter: TypeParameter): C =
     typeParameters(typeParameter.asList())
 
-public infix fun ClassDefinition.typeParameter(param: TypeParameter): ClassDefinition = typeParameters(param)
+public infix fun <C : ClassDefinition<HasTypeParameters>> C.typeParameter(param: TypeParameter): C =
+    typeParameters(param)
 
-public infix fun ClassDefinition.typeParameter(name: String): ClassDefinition = typeParameter(invariant(name))
+public infix fun <C : ClassDefinition<HasTypeParameters>> C.typeParameter(name: String): C =
+    typeParameter(invariant(name))
 
-public fun ClassDefinition.primaryConstructor(modifiers: Modifiers, parameters: List<Parameter>): ClassDefinition {
+public fun <C : ClassDefinition<HasPrimaryConstructor>> C.primaryConstructor(
+    modifiers: Modifiers,
+    parameters: List<Parameter>
+): C = apply {
     constructorModifiers = modifiers.modifiers
     constructorParameters = parameters
-    return this
 }
 
-public fun ClassDefinition.primaryConstructor(modifiers: Modifiers, vararg parameters: Parameter): ClassDefinition =
-    primaryConstructor(modifiers, parameters.asList())
+public fun <C : ClassDefinition<HasPrimaryConstructor>> C.primaryConstructor(
+    modifiers: Modifiers,
+    vararg parameters: Parameter
+): C = primaryConstructor(modifiers, parameters.asList())
 
-public fun ClassDefinition.primaryConstructor(parameters: List<Parameter>): ClassDefinition =
+public fun <C : ClassDefinition<HasPrimaryConstructor>> C.primaryConstructor(parameters: List<Parameter>): C =
     primaryConstructor(Modifiers(), parameters)
 
-public fun ClassDefinition.primaryConstructor(vararg parameters: Parameter): ClassDefinition =
+public fun <C : ClassDefinition<HasPrimaryConstructor>> C.primaryConstructor(vararg parameters: Parameter): C =
     primaryConstructor(parameters.asList())
 
-public fun ClassDefinition.extends(type: Type, arguments: List<Expr>?): ClassDefinition = apply {
-    supertypes.add(Supertype(type, arguments, null))
-}
-
-public fun ClassDefinition.extends(raw: String, arguments: List<Expr>?): ClassDefinition = extends(type(raw), arguments)
-public fun ClassDefinition.extends(type: Type, vararg arguments: Expr): ClassDefinition =
-    extends(type, arguments.asList())
-
-public fun ClassDefinition.extends(raw: String, vararg arguments: Expr): ClassDefinition =
-    extends(raw, arguments.asList())
-
-public fun ClassDefinition.implements(type: Type, by: Expr? = null): ClassDefinition = apply {
+public fun <C : ClassDefinition<CanImplement>> C.implements(type: Type, by: Expr? = null): C = apply {
     supertypes.add(Supertype(type, null, by))
 }
 
-public fun ClassDefinition.implements(raw: String, by: Expr? = null): ClassDefinition = implements(type(raw), by)
+public fun <C : ClassDefinition<CanImplement>> C.implements(raw: String, by: Expr? = null): C =
+    implements(type(raw), by)
 
-public inline infix fun ClassDefinition.body(block: ClassRobot.() -> Unit): ClassDefinition = apply {
+public fun <C : ClassDefinition<CanExtend>> C.extends(type: Type, arguments: List<Expr>?): C = apply {
+    supertypes.add(Supertype(type, arguments, null))
+}
+
+public fun <C : ClassDefinition<CanExtend>> C.extends(raw: String, arguments: List<Expr>?): C =
+    extends(type(raw), arguments)
+
+public fun <C : ClassDefinition<CanExtend>> C.extends(type: Type, vararg arguments: Expr): C =
+    extends(type, arguments.asList())
+
+public fun <C : ClassDefinition<CanExtend>> C.extends(raw: String, vararg arguments: Expr): C =
+    extends(raw, arguments.asList())
+
+public inline infix fun <C : ClassDefinition<*>> C.body(block: ClassRobot.() -> Unit): C = apply {
     declarations = ClassRobot(imports).apply(block).declarations()
+}
+
+@JvmName("enumBody")
+public inline infix fun ClassDefinition<DeclarationType.Enum>.body(
+    block: EnumRobot.() -> Unit
+): ClassDefinition<DeclarationType.Enum> = apply {
+    val robot = EnumRobot(imports)
+    robot.block()
+    enumEntries = robot.enumEntries
+    declarations = robot.declarations()
 }

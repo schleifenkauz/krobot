@@ -56,8 +56,6 @@ public val Modifiers.suspend: Modifiers
     get() = add("suspend")
 public val Modifiers.inner: Modifiers
     get() = add("inner")
-public val Modifiers.enum: Modifiers
-    get() = add("enum")
 public val Modifiers.annotation: Modifiers
     get() = add("annotation")
 public val Modifiers.`fun`: Modifiers
@@ -117,8 +115,6 @@ public val suspend: Modifiers
     get() = singleModifier("suspend")
 public val inner: Modifiers
     get() = singleModifier("inner")
-public val enum: Modifiers
-    get() = singleModifier("enum")
 public val annotation: Modifiers
     get() = singleModifier("annotation")
 public val `fun`: Modifiers

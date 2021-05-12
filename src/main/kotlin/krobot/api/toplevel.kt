@@ -5,6 +5,7 @@
 package krobot.api
 
 import krobot.ast.*
+import kotlin.reflect.jvm.internal.impl.load.java.lazy.descriptors.ClassDeclaredMemberIndex
 
 public infix fun Import.`as`(alias: String): Import = copy(alias = alias)
 
@@ -16,43 +17,59 @@ public inline fun kotlinFile(block: KotlinFileRobot.() -> Unit): KotlinFile =
 public inline fun kotlinScript(block: BlockRobot.() -> Unit): KotlinScript =
     KotlinScriptRobot().apply(block).finishScript()
 
-public fun Modifiers.kotlinClass(name: Identifier, typeParameters: List<TypeParameter>): ClassDefinition =
-    ClassDefinition(ImportsCollector(), modifiers, "class", name, typeParameters.toMutableList())
+public fun Modifiers.kotlinClass(
+    name: Identifier,
+    typeParameters: List<TypeParameter>
+): ClassDefinition<DeclarationType.Class> =
+    ClassDefinition(ImportsCollector(), modifiers, DeclarationType.Class, name, typeParameters.toMutableList())
 
-public fun Modifiers.kotlinClass(name: Identifier, vararg typeParameters: TypeParameter): ClassDefinition =
-    kotlinClass(name, typeParameters.asList())
+public fun Modifiers.kotlinClass(
+    name: Identifier,
+    vararg typeParameters: TypeParameter
+): ClassDefinition<DeclarationType.Class> = kotlinClass(name, typeParameters.asList())
 
-public fun kotlinClass(name: Identifier, typeParameters: List<TypeParameter>): ClassDefinition =
+public fun kotlinClass(name: Identifier, typeParameters: List<TypeParameter>): ClassDefinition<DeclarationType.Class> =
     noModifiers.kotlinClass(name, typeParameters)
 
-public fun kotlinClass(name: Identifier, vararg typeParameters: TypeParameter): ClassDefinition =
+public fun kotlinClass(name: Identifier, vararg typeParameters: TypeParameter): ClassDefinition<DeclarationType.Class> =
     noModifiers.kotlinClass(name, *typeParameters)
 
-public fun Modifiers.kotlinInterface(name: Identifier, typeParameters: List<TypeParameter>): ClassDefinition =
-    ClassDefinition(ImportsCollector(), modifiers, "interface", name, typeParameters.toMutableList())
+public fun Modifiers.kotlinInterface(
+    name: Identifier,
+    typeParameters: List<TypeParameter>
+): ClassDefinition<DeclarationType.Interface> =
+    ClassDefinition(ImportsCollector(), modifiers, DeclarationType.Interface, name, typeParameters.toMutableList())
 
-public fun Modifiers.kotlinInterface(name: Identifier, vararg typeParameters: TypeParameter): ClassDefinition =
-    kotlinInterface(name, typeParameters.asList())
+public fun Modifiers.kotlinInterface(
+    name: Identifier,
+    vararg typeParameters: TypeParameter
+): ClassDefinition<DeclarationType.Interface> = kotlinInterface(name, typeParameters.asList())
 
-public fun kotlinInterface(name: Identifier, typeParameters: List<TypeParameter>): ClassDefinition =
-    noModifiers.kotlinInterface(name, typeParameters)
+public fun kotlinInterface(
+    name: Identifier,
+    typeParameters: List<TypeParameter>
+): ClassDefinition<DeclarationType.Interface> = noModifiers.kotlinInterface(name, typeParameters)
 
-public fun kotlinInterface(name: Identifier, vararg typeParameters: TypeParameter): ClassDefinition =
-    noModifiers.kotlinInterface(name, *typeParameters)
+public fun kotlinInterface(
+    name: Identifier,
+    vararg typeParameters: TypeParameter
+): ClassDefinition<DeclarationType.Interface> = noModifiers.kotlinInterface(name, *typeParameters)
 
-public fun Modifiers.kotlinObject(name: Identifier, typeParameters: List<TypeParameter>): ClassDefinition =
-    ClassDefinition(ImportsCollector(), modifiers, "object", name, typeParameters.toMutableList())
+public fun Modifiers.kotlinObject(
+    name: Identifier
+): ClassDefinition<DeclarationType.Object> =
+    ClassDefinition(ImportsCollector(), modifiers, DeclarationType.Object, name)
 
-public fun Modifiers.kotlinObject(name: Identifier, vararg typeParameters: TypeParameter): ClassDefinition =
-    kotlinObject(name, typeParameters.asList())
+public fun kotlinObject(name: Identifier): ClassDefinition<DeclarationType.Object> = noModifiers.kotlinObject(name)
 
-public fun kotlinObject(name: Identifier, typeParameters: List<TypeParameter>): ClassDefinition =
-    noModifiers.kotlinObject(name, typeParameters)
+public fun Modifiers.kotlinEnum(
+    name: Identifier
+): ClassDefinition<DeclarationType.Enum> =
+    ClassDefinition(ImportsCollector(), modifiers, DeclarationType.Enum, name, enumEntries = mutableListOf())
 
-public fun kotlinObject(name: Identifier, vararg typeParameters: TypeParameter): ClassDefinition =
-    noModifiers.kotlinObject(name, *typeParameters)
+public fun kotlinEnum(name: Identifier): ClassDefinition<DeclarationType.Enum> = noModifiers.kotlinEnum(name)
 
-public inline fun ClassDefinition.asFile(block: KotlinFileRobot.() -> Unit = {}): NamedTopLevelElement = kotlinFile {
+public inline fun ClassDefinition<*>.asFile(block: KotlinFileRobot.() -> Unit = {}): NamedTopLevelElement = kotlinFile {
     block()
     imports.addAll(this@asFile.imports)
     add(this@asFile)

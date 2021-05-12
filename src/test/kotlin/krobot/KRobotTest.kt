@@ -77,6 +77,12 @@ class KRobotTest {
                 private.constructor("test" of "Int").delegate("listOf"("test".e, "Random".e.call("nextInt")))
                 abstract.`fun`("f") returnType "Int"
                 public.`class`("Inner")
+                internal.enum("E").primaryConstructor(`val`.parameter("x") of "Int".t).body {
+                    abstract.`fun`("f") returnType "Int"
+                    "X"("1".e) {
+                        override.`fun`("f") returnType "Int" returns "1".e
+                    }
+                }
             }
         }
         println(file.pretty())

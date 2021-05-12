@@ -6,7 +6,7 @@ package krobot.api
 
 import krobot.ast.*
 
-public abstract class AdvancedDeclarationsRobot internal constructor(
+public open class AdvancedDeclarationsRobot @PublishedApi internal constructor(
     imports: ImportsCollector,
     private val declarations: MutableList<Declaration>
 ) : BasicDeclarationsRobot(imports, declarations) {
