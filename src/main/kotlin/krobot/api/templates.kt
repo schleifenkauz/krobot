@@ -1,6 +1,6 @@
 package krobot.api
 
-import krobot.ast.Template
+import krobot.templates.Template
 import krobot.ast.TemplateElement
 import krobot.ast.UniversalElement
 

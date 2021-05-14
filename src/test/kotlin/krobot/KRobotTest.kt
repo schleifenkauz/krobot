@@ -6,7 +6,7 @@ package krobot
 
 import krobot.api.*
 import krobot.ast.Expr
-import krobot.ast.Template
+import krobot.templates.Template
 import org.junit.jupiter.api.Test
 
 class KRobotTest {
@@ -102,13 +102,23 @@ class KRobotTest {
                 "c"
             )
             +"val x = 1"
-            +"val {@0} = {@1}".format("y", lit(2) + lit(3))
+            +"val @0 = @1".format("y", lit(2) + lit(3))
             +`fun`("f", "vararg xs" of "Int") returnType "Int" returns "xs".e.call("asList").call("sum()")
             +"val f = 0"
-            val template = Template.parse("val {@0} = f{(*, 1?)}")
+            val template = Template.parse("val @0 = f{(*, 1)}")
             +template.format("a", listOf(lit(1), lit(2), lit(3)))
             +template.format("b", emptyList<Expr>())
         }
         println(f.pretty())
+    }
+
+    @Test
+    fun sample4() {
+        println("val @0 = 1".format("x").pretty())
+        println("val x = listOf(*, 0)".format(listOf(lit(1), lit(2), lit(3))).pretty())
+        println("{val x = @0}".format(null).pretty())
+        println("val x = @0{ + @1}".format(lit(1), lit(2)).pretty())
+        println("1 + 2 + 3{ + * + $0}".format(listOf(lit(4), lit(5), null)).pretty())
+        println("(@0..@1).forEach \\{ println(it \\* it) \\}".format(lit(1), lit(5)).pretty())
     }
 }

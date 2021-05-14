@@ -93,19 +93,20 @@ Until I have written more documentation on the individual features,
 this fairly extensive example should serve the purpose of introducing you to the library.
 ```kotlin
 import krobot.api.*
+import java.io.File
 
 fun main() {
-    val f = kotlinFile {
+    kotlinFile {
         import("kotlin.random.Random")
         `package`("foo.bar")
-        abstract.`class`("ExampleClass", `in`("T"))
+        +abstract.`class`("ExampleClass", `in`("T"))
             .primaryConstructor(
                 `@`("PublishedApi").internal,
                 private.`val`.parameter("wrapped") of type("List", "Int")
             )
             .implements(type("List", "Int"), by = get("wrapped"))
             .extends("Any", emptyList()) body {
-            inline.`fun`(
+            +inline.`fun`(
                 listOf(invariant("T") lowerBound "Any"),
                 "f",
                 "x" of "Int" default lit(3),
@@ -141,12 +142,17 @@ fun main() {
                     }
                 }
             }
-            private.constructor("test" of "Int").delegate("listOf"("test".e, "Random".e.call("nextInt")))
-            abstract.`fun`("f") returnType "Int"
-            public.`class`("Inner")
+            +private.constructor("test" of "Int").delegate("listOf"("test".e, "Random".e.call("nextInt")))
+            +abstract.`fun`("f") returnType "Int"
+            +public.`class`("Inner")
+            +internal.enum("E").primaryConstructor(`val`.parameter("x") of "Int".t).body {
+                +abstract.`fun`("f") returnType "Int"
+                +"X"("1".e) {
+                    +override.`fun`("f") returnType "Int" returns "1".e
+                }
+            }
         }
-    }
-    println(f.pretty())
+    }.saveTo(File("generated.kt"))
 }
 ```
 It generates the following Kotlin file:
@@ -155,7 +161,7 @@ package foo.bar
 import kotlin.random.Random
 import java.awt.Robot
 abstract class ExampleClass<in T> @PublishedApi internal constructor(private val wrapped: List<Int>): List<Int> by wrapped, Any() {
-    inline fun <T: Any> Int.f(x: Int = 3, l: List<Int>, crossinline block: Robot.(Int) -> Int) {
+    inline fun <T: Any> f(x: Int = 3, l: List<Int>, crossinline block: Robot.(Int) -> Int): Int {
         println(x)
         if(x == 3) {
             println("default value supplied")
@@ -177,11 +183,69 @@ abstract class ExampleClass<in T> @PublishedApi internal constructor(private val
         }
     }
     private constructor(test: Int) : this(listOf(test, Random.nextInt()))
-    abstract fun Int.f()
+    abstract fun f(): Int
     public class Inner
+    internal enum class E (val x: Int) {
+        X(1){
+            override fun f(): Int  = 1
+        };
+        abstract fun f(): Int
+    }
 }
 ```
 If you are unsure how to generate a specific language construct, you can create an Issue on GitHub.
+
+### Templates
+
+In some cases, it can be easier to just use string interpolation instead of building an abstract syntax tree. 
+KRobot implements a simple templating language, that provides the basic functionality needed to generate code.
+It can be arbitrarily mixed with the structured API.  
+The templating language has only a couple of concepts:  
+- The interpolation operator `@`. 
+  It must be followed by the zero-based index of the parameter that should be referenced.
+  If this parameter is `null` it is replaced by an empty string.
+  Example: `"val @0 = 1".format("x")` evaluates to `"val x = 1"`.
+- The spread operator `*`, which works like the interpolation operator just with lists (and other `Iterable`s).
+  It must be followed by a character sequence, which is used as the separator between adjacent elements,
+  and then the index of the referenced parameter. 
+  If the referenced parameter is `null`, empty, or contains null-elements, the form is replaced by an empty string.
+  Example: `"val x = listOf(*, 0)".format(listOf(lit(1), lit(2), lit(3)))` evaluates to `val x = listOf(1, 2, 3)"`.
+- Groups enclosed by curly brackets are replaced by an empty string,
+  if any parameter referenced inside the group is null
+  or if a list referenced by the spread operator inside the group is empty or contains null-elements.
+  Examples: 
+    - `"{val x = @0}".format(null)` evaluates to `""`.
+    - `"val x = $0{ + @1}".format(lit(1), lit(2))` evaluates to `"val x = 1"`.
+    - `"1 + 2 + 3{ + * + 0}".format(lit(4), lit(5), null)` evaluates to `"1 + 2 + 3"`
+The characters `@`, `*`, `{`, and `}` can be escaped by putting a backslash before them.  
+For example: `"(@0..@1).forEach \\{ println(it \\* it) \\}".format(lit(1), lit(5))`.
+
+`Template`s can be created using the function `Template.parse(raw: String)` from the `krobot.templates`-package
+and instantiated with the function `format(vararg arguments: Any?)` of the `Template`-class. 
+You can also use the function `String.format(vararg arguments: Any?)` which is defined as an extension
+and creates a `Template` under the hood. 
+The `format`-functions return a `TemplateElement` which can added as declarations or statements with the `+`-operator
+or used as types or expressions. See the following example: 
+````kotlin
+val f = kotlinScript {
+    +"val x = 1"
+    +"val @0 = @1".format("y", lit(2) + lit(3))
+    +`fun`("f", "vararg xs" of "Int") returnType "Int" returns "xs".e.call("asList").call("sum()")
+    +"val f = 0"
+    val template = Template.parse("val @0 = f{(*, 1)}")
+    +template.format("a", listOf(lit(1), lit(2), lit(3)))
+    +template.format("b", emptyList<Expr>())
+}
+````
+It generates the following code:
+````kotlin
+val x = 1
+val y = 2 + 3
+fun f(vararg xs: Int): Int  = xs.asList().sum()()
+val f = 0
+val a = f(1, 2, 3)
+val b = f
+````
 
 ## Contributing
 

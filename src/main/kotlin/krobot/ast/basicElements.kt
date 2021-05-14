@@ -1,6 +1,7 @@
 package krobot.ast
 
 import krobot.impl.IndentedWriter
+import krobot.templates.Template
 
 public object NoElement : Element {
     override fun append(out: IndentedWriter) {}
