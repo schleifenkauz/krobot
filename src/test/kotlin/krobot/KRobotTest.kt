@@ -102,10 +102,10 @@ class KRobotTest {
                 "c"
             )
             +"val x = 1"
-            +"val @0 = @1".format("y", lit(2) + lit(3))
+            +"val @1 = @2".format("y", lit(2) + lit(3))
             +`fun`("f", "vararg xs" of "Int") returnType "Int" returns "xs".e.call("asList").call("sum()")
             +"val f = 0"
-            val template = Template.parse("val @0 = f{(*, 1)}")
+            val template = Template.parse("val @1 = f{(*2{, })}")
             +template.format("a", listOf(lit(1), lit(2), lit(3)))
             +template.format("b", emptyList<Expr>())
         }
@@ -114,11 +114,13 @@ class KRobotTest {
 
     @Test
     fun sample4() {
-        println("val @0 = 1".format("x").pretty())
-        println("val x = listOf(*, 0)".format(listOf(lit(1), lit(2), lit(3))).pretty())
-        println("{val x = @0}".format(null).pretty())
-        println("val x = @0{ + @1}".format(lit(1), lit(2)).pretty())
-        println("1 + 2 + 3{ + * + $0}".format(listOf(lit(4), lit(5), null)).pretty())
-        println("(@0..@1).forEach \\{ println(it \\* it) \\}".format(lit(1), lit(5)).pretty())
+        println("val @1 = 1".format("x").pretty())
+        println("val x = listOf(*1{, })".format(listOf(lit(1), lit(2), lit(3))).pretty())
+        println("{val x = @1}".format(null).pretty())
+        println("val x = @1{ + @2}".format(lit(1), lit(2)).pretty())
+        println("1 + 2 + 3{ + *1{ + }}".format(listOf(lit(4), lit(5), null)).pretty())
+        println("(@1..@2).forEach \\{ println(it \\* it) \\}".format(lit(1), lit(5)).pretty())
+        println("listOf(*1{, }[2.@2 \\* @2])".format(listOf("1", "2", "3")).pretty())
+        println("val x = @2{ + {@1 \\* @2} + {@1 \\* @3}}".format(lit(1), lit(2), null).pretty())
     }
 }

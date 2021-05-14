@@ -8,60 +8,74 @@ public class Template private constructor(private val raw: String, private val p
 
     internal sealed interface Part
 
-    internal sealed interface Token: Part
+    internal data class Verbatim(val content: String) : Part
 
-    internal data class Verbatim(val content: String) : Token
+    internal data class Transformation(val index: Int, val body: Part)
 
     internal data class Interpolate(
         val operator: Char,
-        val separator: String,
-        val index: Int
-    ) : Token
+        val separator: Part?,
+        val index: Int,
+        val transformation: Transformation?,
+    ) : Part
 
-    internal data class Group(val tokens: List<Token>) : Part
+    internal data class Group(val parts: List<Part>) : Part
 
     internal fun format(out: IndentedWriter, arguments: List<Any?>) {
-        for (part in parts) {
-            when (part) {
-                is Verbatim -> out.append(part.content)
-                is Interpolate -> interpolate(part, out, arguments[part.index])
-                is Group -> {
-                    if (shouldSkip(part, arguments)) continue
-                    for (token in part.tokens) {
-                        when (token) {
-                            is Verbatim -> out.append(token.content)
-                            is Interpolate -> interpolate(token, out, arguments[token.index])
-                        }
-                    }
-                }
+        for (part in parts) out.format(part, arguments, emptyMap())
+    }
+
+    private fun IndentedWriter.format(part: Part, arguments: List<Any?>, scope: Map<Int, Any>) {
+        when (part) {
+            is Verbatim -> append(part.content)
+            is Interpolate -> interpolate(part, arguments, scope)
+            is Group -> {
+                if (shouldSkip(part, arguments, scope)) return
+                for (p in part.parts) format(p, arguments, scope)
             }
         }
     }
 
-    private fun shouldSkip(group: Group, arguments: List<Any?>): Boolean {
-        for (token in group.tokens) {
-            if (token is Interpolate) {
-                val i = token.index
-                if (i !in arguments.indices)
-                    throw IllegalArgumentException("No argument at index $i")
-                val arg = arguments[i] ?: return true
-                if (token.operator == '*') {
-                    require(arg is Iterable<*>) { "Argument $i must be iterable but is $arg" }
-                    if (arg.none() || arg.any { it == null }) return true
+    private fun shouldSkip(group: Group, arguments: List<Any?>, scope: Map<Int, Any>): Boolean {
+        for (part in group.parts) {
+            when (part) {
+                is Interpolate -> {
+                    val i = part.index
+                    if (i - 1 !in arguments.indices && i !in scope)
+                        throw IllegalArgumentException("No argument at index $i")
+                    val arg = scope[i] ?: arguments[i - 1] ?: return true
+                    if (part.operator == '*') {
+                        require(arg is Iterable<*>) { "Argument $i must be iterable but is $arg" }
+                        if (arg.none() || arg.any { it == null }) return true
+                    }
                 }
+                is Group -> {
+                    if (shouldSkip(part, arguments, scope)) return true
+                }
+                is Verbatim -> continue
             }
         }
         return false
     }
 
-    private fun interpolate(token: Interpolate, out: IndentedWriter, argument: Any?) {
+    private fun IndentedWriter.interpolate(token: Interpolate, arguments: List<Any?>, scope: Map<Int, Any>) {
+        val argument = scope[token.index] ?: arguments[token.index - 1]
         when (token.operator) {
-            '@' -> if (argument != null) out.append(argument)
+            '@' -> if (argument != null) append(argument)
             '*' -> {
                 if (argument == null) return
                 val elements = argument as Iterable<Any?>
                 if (elements.none() || elements.any { it == null }) return
-                out.join(elements.map { it!! }, token.separator, "", "")
+                val itr = elements.iterator()
+                while (true) {
+                    val e = itr.next()
+                    if (token.transformation != null) {
+                        val (index, body) = token.transformation
+                        format(body, arguments, scope + (index to e!!))
+                    } else append(e)
+                    if (!itr.hasNext()) break
+                    format(token.separator!!, arguments, scope)
+                }
             }
         }
     }
@@ -69,40 +83,42 @@ public class Template private constructor(private val raw: String, private val p
     public companion object {
         public fun parse(raw: String): Template {
             val src = CharSource(raw)
-            val parts = parseParts(src, inGroup = false)
+            val parts = parseParts(src, braceNesting = 0, bracketNesting = 0)
             return Template(raw, parts)
         }
 
-        private fun parseGroup(src: CharSource): Group {
-            val tokens = parseParts(src, inGroup = true).map { it as Token }
-            return Group(tokens)
-        }
-
-        private fun parseParts(src: CharSource, inGroup: Boolean): List<Part> {
+        private fun parseParts(src: CharSource, braceNesting: Int, bracketNesting: Int): List<Part> {
             val dest = mutableListOf<Part>()
             val buf = StringBuilder()
             while (src.hasNext()) {
                 when (val c = src.next()) {
                     '@', '*' -> {
                         clearBuffer(buf, dest)
-                        var separator = ""
-                        if (c == '*') {
-                            while (!src.peek().isDigit()) {
-                                buf.append(src.next())
-                            }
-                            separator = buf.toString()
-                            buf.clear()
-                        }
-                        val index = src.next().toString().toIntOrNull() ?: src.error("expected parameter index")
-                        dest.add(Interpolate(c, separator, index))
+                        val index = readIndex(src)
+                        val separator = if (c == '*') readSeparator(src) else null
+                        val transformation = if (src.hasNext() && src.peek() == '[') {
+                            src.next()
+                            val i = readIndex(src)
+                            if (src.next() != '.') src.error("expected dot")
+                            val parts = parseParts(src, 0, bracketNesting + 1)
+                            val body = if (parts.size == 1) parts[0] else Group(parts)
+                            Transformation(i, body)
+                        } else null
+                        dest.add(Interpolate(c, separator, index, transformation))
+                    }
+                    '[' -> src.error("illegal bracket")
+                    ']' -> {
+                        if (bracketNesting < 1) src.error("unmatched closing curly bracket")
+                        if (braceNesting >= 1) src.error("unclosed brace")
+                        break
                     }
                     '{' -> {
-                        if (inGroup) src.error("nested groups are not allowed")
                         clearBuffer(buf, dest)
-                        dest.add(parseGroup(src))
+                        val tokens = parseParts(src, braceNesting + 1, bracketNesting)
+                        dest.add(Group(tokens))
                     }
                     '}' -> {
-                        if (inGroup) break
+                        if (braceNesting >= 1) break
                         src.error("unmatched closing curly bracket")
                     }
                     '\\' -> buf.append(src.next())
@@ -111,6 +127,20 @@ public class Template private constructor(private val raw: String, private val p
             }
             clearBuffer(buf, dest)
             return dest
+        }
+
+        private fun readIndex(src: CharSource): Int {
+            var index = src.next().toString().toIntOrNull() ?: src.error("expected parameter index")
+            while (src.hasNext() && src.peek() in '0'..'9') {
+                index = index * 10 + (src.next() - '0')
+            }
+            return index
+        }
+
+        private fun readSeparator(src: CharSource): Part {
+            if (src.peek() != '{') return Verbatim(src.next().toString())
+            src.next()
+            return Group(parseParts(src, braceNesting = 1, bracketNesting = 0))
         }
 
         private fun clearBuffer(buf: StringBuilder, dest: MutableList<Part>) {

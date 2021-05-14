@@ -80,7 +80,7 @@ kotlinFile {
 }.saveTo(File("generatedMaths.kt"))
 ```
 A useful utility are the `saveToSourceRoot`-functions, which take the package declaration of a file into consideration.
-For example 
+For example
 ```kotlin
 kotlinFile { 
     `package`("foo.bar.baz")
@@ -89,7 +89,7 @@ kotlinFile {
 ```
 Puts the generated file `foo.kt` into the directory `build/generated/foo/bar/baz`.
 
-Until I have written more documentation on the individual features, 
+Until I have written more documentation on the individual features,
 this fairly extensive example should serve the purpose of introducing you to the library.
 ```kotlin
 import krobot.api.*
@@ -156,7 +156,7 @@ fun main() {
 }
 ```
 It generates the following Kotlin file:
-```kotlin
+````kotlin
 package foo.bar
 import kotlin.random.Random
 import java.awt.Robot
@@ -192,47 +192,56 @@ abstract class ExampleClass<in T> @PublishedApi internal constructor(private val
         abstract fun f(): Int
     }
 }
-```
+````
 If you are unsure how to generate a specific language construct, you can create an Issue on GitHub.
 
 ### Templates
 
-In some cases, it can be easier to just use string interpolation instead of building an abstract syntax tree. 
+In some cases, it can be easier to just use string interpolation instead of building an abstract syntax tree.
 KRobot implements a simple templating language, that provides the basic functionality needed to generate code.
 It can be arbitrarily mixed with the structured API.  
-The templating language has only a couple of concepts:  
-- The interpolation operator `@`. 
-  It must be followed by the zero-based index of the parameter that should be referenced.
-  If this parameter is `null` it is replaced by an empty string.
-  Example: `"val @0 = 1".format("x")` evaluates to `"val x = 1"`.
-- The spread operator `*`, which works like the interpolation operator just with lists (and other `Iterable`s).
-  It must be followed by a character sequence, which is used as the separator between adjacent elements,
-  and then the index of the referenced parameter. 
-  If the referenced parameter is `null`, empty, or contains null-elements, the form is replaced by an empty string.
-  Example: `"val x = listOf(*, 0)".format(listOf(lit(1), lit(2), lit(3)))` evaluates to `val x = listOf(1, 2, 3)"`.
-- Groups enclosed by curly brackets are replaced by an empty string,
-  if any parameter referenced inside the group is null
-  or if a list referenced by the spread operator inside the group is empty or contains null-elements.
-  Examples: 
-    - `"{val x = @0}".format(null)` evaluates to `""`.
-    - `"val x = $0{ + @1}".format(lit(1), lit(2))` evaluates to `"val x = 1"`.
-    - `"1 + 2 + 3{ + * + 0}".format(lit(4), lit(5), null)` evaluates to `"1 + 2 + 3"`
-The characters `@`, `*`, `{`, and `}` can be escaped by putting a backslash before them.  
-For example: `"(@0..@1).forEach \\{ println(it \\* it) \\}".format(lit(1), lit(5))`.
+The templating language has only a couple of concepts:
+- The syntax for interpolation is `@<idx>`, where `idx` is the (one-based) index of the referenced parameter.  
+  For example, `"val @1 = 1".format("x")` evaluates to `"val x = 1"`.  
+  If this parameter is `null`, the form is replaced with an empty string.  
+  For example, `"println(@1)".format(null)` evaluates to `"println()"`
+- The spread operator `*` works like the interpolation operator just with lists (and other `Iterable`s).
+  The syntax is `*<idx>{<separator>}`.  
+  For example, `"val x = listOf(*1{, })".format(listOf(lit(1), lit(2), lit(3)))` evaluates to `val x = listOf(1, 2, 3)"`.  
+  If the separator is only one character long, the curly brackets can be omitted.
+  If the referenced parameter is `null`, empty, or contains null-elements, the form is replaced by an empty string.  
+  For example `"listOf(*1{, })".format(listOf("1", null))` evaluates to `"listOf()"`.
+- A spread form may be followed by a transformation. 
+  The syntax is `*<idx>{<sep>}[<v>.<body>]`. 
+  Appending the transformation has the effect of substituting the individual elements of the referenced list 
+  for the interpolations referencing `<v>` into the `<body>`. 
+  The functionality can be compared to the `map`-function from Kotlin.  
+  An example: `"listof(*1{, }[2.@2 + @2])".format(listOf(lit(1), lit(2), lit(3)))` evaluates to `"listOf(1 + 1, 2 + 2, 3 + 3)".`
+- Groups enclosed by curly brackets are *skipped* (that is, replaced by an empty string),
+  if any parameter referenced inside the group is null,
+  if a list referenced by the spread operator inside the group is empty or contains null-elements,
+  or if a group enclosed in the outer group is skipped.  
+  Some examples:
+    - `"{val x = @1}".format(null)` evaluates to `""`.
+    - `"val x = @1{ + @2}".format(lit(1), lit(2))` evaluates to `"val x = 1"`.
+    - `"1 + 2 + 3{ + *2{ + }}".format(lit(4), lit(5), null)` evaluates to `"1 + 2 + 3"`
+    - `"val x = @2 {+ {@1 * @2} + {@1 * @3}}".format(lit(1), lit(2), null)` evaluates to `"val x = 2"`.
+- The characters `@`, `*`, `{`, `}`, `[` and `]` can be escaped by putting a backslash before them.  
+  For example, `"(@1..@2).forEach \\{ println(it \\* it) \\}".format(lit(1), lit(5))`.
 
 `Template`s can be created using the function `Template.parse(raw: String)` from the `krobot.templates`-package
-and instantiated with the function `format(vararg arguments: Any?)` of the `Template`-class. 
+and instantiated with the function `format(vararg arguments: Any?)` of the `Template`-class.
 You can also use the function `String.format(vararg arguments: Any?)` which is defined as an extension
-and creates a `Template` under the hood. 
+and creates a `Template` under the hood.
 The `format`-functions return a `TemplateElement` which can added as declarations or statements with the `+`-operator
-or used as types or expressions. See the following example: 
+or used as types or expressions. See the following example:
 ````kotlin
 val f = kotlinScript {
     +"val x = 1"
-    +"val @0 = @1".format("y", lit(2) + lit(3))
+    +"val @1 = @2".format("y", lit(2) + lit(3))
     +`fun`("f", "vararg xs" of "Int") returnType "Int" returns "xs".e.call("asList").call("sum()")
     +"val f = 0"
-    val template = Template.parse("val @0 = f{(*, 1)}")
+    val template = Template.parse("val @1 = f{(*2{, })}")
     +template.format("a", listOf(lit(1), lit(2), lit(3)))
     +template.format("b", emptyList<Expr>())
 }
@@ -256,7 +265,7 @@ Contributions are greatly appreciated. You can contribute by...
 - ...extending the test coverage.
 - ...writing documentation for the API in the form of KDoc comments.
 
-If you want to use the project or contribute and have questions, 
+If you want to use the project or contribute and have questions,
 please feel free to get help from me - either via email or by creating an issue on GitHub.
 
 ### Development setup
