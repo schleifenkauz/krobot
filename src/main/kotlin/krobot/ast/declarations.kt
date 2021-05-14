@@ -5,15 +5,14 @@
 package krobot.ast
 
 import krobot.api.ImportsCollector
-import krobot.ast.IndentedWriter.NewLine
-import krobot.ast.IndentedWriter.Space
 import krobot.ast.PropertyInitializer.None
+import krobot.impl.IndentedWriter
 
-public abstract class BlockElement internal constructor() : Element()
+public sealed interface BlockElement : Element
 
-public sealed class Declaration : BlockElement()
+public sealed interface Declaration : BlockElement
 
-internal sealed class PropertyInitializer : Element() {
+internal sealed class PropertyInitializer : Element {
     object None : PropertyInitializer() {
         override fun append(out: IndentedWriter) {}
     }
@@ -43,28 +42,28 @@ internal fun IndentedWriter.block(elements: List<Element>) {
 }
 
 
-public sealed class FunctionBody : Element() {
-    public data class SingleExpr @PublishedApi internal constructor(private val expr: Expr) : FunctionBody() {
-        override fun append(out: IndentedWriter) = with(out) {
+public sealed interface FunctionBody : Element {
+    public data class SingleExpr @PublishedApi internal constructor(private val expr: Expr) : FunctionBody {
+        override fun append(out: IndentedWriter): Unit = with(out) {
             append(" = ")
             append(expr)
         }
     }
 
-    public data class Block @PublishedApi internal constructor(private val body: Body) : FunctionBody() {
-        override fun append(out: IndentedWriter) = out.block(body.statements)
+    public data class Block @PublishedApi internal constructor(private val body: Body) : FunctionBody {
+        override fun append(out: IndentedWriter): Unit = out.block(body.statements)
     }
 }
 
-internal sealed class Modifier : Element()
+internal sealed interface Modifier : Element
 
-internal data class KeywordModifier(private val keyword: String) : Modifier() {
+internal data class KeywordModifier(private val keyword: String) : Modifier {
     override fun append(out: IndentedWriter) = with(out) {
         append(keyword)
     }
 }
 
-internal data class AnnotationModifier(private val clazz: String, private val arguments: List<Expr>) : Modifier() {
+internal data class AnnotationModifier(private val clazz: String, private val arguments: List<Expr>) : Modifier {
     override fun append(out: IndentedWriter) = with(out) {
         append('@')
         append(clazz)
@@ -72,7 +71,7 @@ internal data class AnnotationModifier(private val clazz: String, private val ar
     }
 }
 
-@PublishedApi internal data class Getter(val modifiers: List<Modifier>, val body: FunctionBody?) : Element() {
+@PublishedApi internal data class Getter(val modifiers: List<Modifier>, val body: FunctionBody?) : Element {
     override fun append(out: IndentedWriter) = with(out) {
         indented {
             join(modifiers, Space, postfix = Space)
@@ -89,7 +88,7 @@ internal data class AnnotationModifier(private val clazz: String, private val ar
     val modifiers: List<Modifier>,
     val parameterName: String,
     val body: FunctionBody?
-) : Element() {
+) : Element {
     override fun append(out: IndentedWriter) = with(out) {
         indented {
             join(modifiers, Space, postfix = Space)
@@ -110,8 +109,8 @@ public open class BasicProperty internal constructor(
     internal var receiver: Type? = null,
     internal var type: Type? = null,
     internal var initializer: PropertyInitializer = None
-) : Declaration() {
-    override fun append(out: IndentedWriter) = with(out) {
+) : Declaration {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         join(modifiers, Space)
         space()
         append(valOrVar)
@@ -134,7 +133,7 @@ public class AdvancedProperty @PublishedApi internal constructor(
     @PublishedApi internal var getter: Getter? = null,
     @PublishedApi internal var setter: Setter? = null
 ) : BasicProperty(imports, modifiers, valOrVar, name, type, receiver, initializer) {
-    override fun append(out: IndentedWriter) = with(out) {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         super.append(out)
         join(NewLine, getter)
         join(NewLine, setter)
@@ -146,8 +145,8 @@ public data class Parameter @PublishedApi internal constructor(
     private val modifiers: List<Modifier> = emptyList(),
     val type: Type? = null,
     val defaultValue: Expr? = null
-) : Element() {
-    override fun append(out: IndentedWriter) = with(out) {
+) : Element {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         join(modifiers, Space, postfix = Space)
         append(name)
         join(": ", type)
@@ -159,8 +158,8 @@ public data class TypeParameter internal constructor(
     private val variance: Variance,
     private val name: Identifier,
     private var lowerBound: Type?
-) : Element() {
-    override fun append(out: IndentedWriter) = with(out) {
+) : Element {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         append(variance)
         append(name)
         join(": ", lowerBound)
@@ -176,8 +175,8 @@ public data class Fun @PublishedApi internal constructor(
     internal var parameters: List<Parameter> = emptyList(),
     internal var returnType: Type? = null,
     internal var body: FunctionBody? = null
-) : Declaration() {
-    override fun append(out: IndentedWriter) = with(out) {
+) : Declaration {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         join(modifiers, Space, postfix = Space)
         append("fun ")
         join(typeParameters, ", ", "<", "> ")
@@ -198,8 +197,8 @@ public data class Constructor internal constructor(
     private val parameters: List<Parameter>,
     internal var delegationArguments: List<Expr>?,
     @PublishedApi internal var body: List<BlockElement>?
-) : Declaration() {
-    override fun append(out: IndentedWriter) = with(out) {
+) : Declaration {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         join(modifiers, " ")
         append(" constructor(")
         join(parameters, ", ")
@@ -213,7 +212,7 @@ public data class Constructor internal constructor(
     }
 }
 
-internal data class Supertype(val type: Type, val arguments: List<Expr>?, val delegate: Expr?) : Element() {
+internal data class Supertype(val type: Type, val arguments: List<Expr>?, val delegate: Expr?) : Element {
     override fun append(out: IndentedWriter) = with(out) {
         append(type)
         if (arguments != null) append('(')
@@ -246,13 +245,13 @@ public sealed interface DeclarationType {
     }
 }
 
-@PublishedApi
-internal data class EnumEntry(
+
+public data class EnumEntry @PublishedApi internal constructor(
     val name: Identifier,
     val arguments: List<Expr>,
     val declarations: List<Declaration>?
-): Element() {
-    override fun append(out: IndentedWriter) = with(out) {
+): Element {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         append(name)
         join(arguments.ifEmpty { null }, prefix = "(", postfix = ")")
         if (declarations != null) block(declarations)
@@ -270,8 +269,8 @@ public data class ClassDefinition<out T: DeclarationType> internal constructor(
     internal val supertypes: MutableList<Supertype> = mutableListOf(),
     @PublishedApi internal var enumEntries: List<EnumEntry>? = null,
     @PublishedApi internal var declarations: List<Declaration>? = null
-) : Declaration() {
-    override fun append(out: IndentedWriter) = with(out) {
+) : Declaration {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         join(modifiers, " ", postfix = " ")
         append(declarationType)
         space()
@@ -302,7 +301,7 @@ internal data class TypeAlias(
     private val name: Identifier,
     private val parameters: List<String>,
     private val type: Type
-) : Declaration() {
+) : Declaration {
     override fun append(out: IndentedWriter) = with(out) {
         join(modifiers, " ", postfix = " ")
         append("typealias ")

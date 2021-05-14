@@ -5,21 +5,15 @@
 package krobot.ast
 
 import krobot.api.ImportsCollector
-import krobot.ast.IndentedWriter.NewLine
+import krobot.impl.IndentedWriter
 
 public interface Assignable
 
 public typealias Identifier = String
 
-public sealed class Expr : BlockElement()
+public sealed interface Expr : BlockElement
 
-internal data class UncheckedExpr(private val str: String) : Expr() {
-    override fun append(out: IndentedWriter) {
-        out.append(str)
-    }
-}
-
-internal data class Literal(private val string: String) : Expr() {
+internal data class Literal(private val string: String) : Expr {
     override fun append(out: IndentedWriter) {
         out.append(string)
     }
@@ -29,7 +23,7 @@ internal data class OperatorApplication(
     private val lhs: Expr,
     private val operator: String,
     private val rhs: Expr
-) : Expr() {
+) : Expr {
     override fun append(out: IndentedWriter) = with(out) {
         append(lhs)
         space()
@@ -39,7 +33,7 @@ internal data class OperatorApplication(
     }
 }
 
-internal data class ParenthesizedExpr(private val wrapped: Expr) : Expr() {
+internal data class ParenthesizedExpr(private val wrapped: Expr) : Expr {
     override fun append(out: IndentedWriter) = with(out) {
         append('(')
         append(wrapped)
@@ -51,7 +45,7 @@ internal data class UnaryOperatorApplication(
     private val operand: Expr,
     private val operator: String,
     private val after: Boolean = false
-) : Expr() {
+) : Expr {
     override fun append(out: IndentedWriter) = with(out) {
         if (after) {
             append(operand)
@@ -63,14 +57,14 @@ internal data class UnaryOperatorApplication(
     }
 }
 
-internal data class MapAccess(private val map: Expr, private val keys: List<Expr>) : Assignable, Expr() {
+internal data class MapAccess(private val map: Expr, private val keys: List<Expr>) : Assignable, Expr {
     override fun append(out: IndentedWriter) = with(out) {
         append(map)
         join(keys, ", ", "[", "]")
     }
 }
 
-internal data class InstanceCheck(private val expr: Expr, private val type: Type) : Expr() {
+internal data class InstanceCheck(private val expr: Expr, private val type: Type) : Expr {
     override fun append(out: IndentedWriter) = with(out) {
         append(expr)
         append(" is ")
@@ -78,7 +72,7 @@ internal data class InstanceCheck(private val expr: Expr, private val type: Type
     }
 }
 
-internal data class TypeCast(private val expr: Expr, private val type: Type, private val safe: Boolean) : Expr() {
+internal data class TypeCast(private val expr: Expr, private val type: Type, private val safe: Boolean) : Expr {
     override fun append(out: IndentedWriter) = with(out) {
         append(expr)
         append(" as")
@@ -91,7 +85,7 @@ internal data class TypeCast(private val expr: Expr, private val type: Type, pri
 internal data class PropertyAccess(
     private val receiver: Expr?,
     private val propertyName: Identifier
-) : Expr(), Assignable {
+) : Expr, Assignable {
     override fun append(out: IndentedWriter) = with(out) {
         join(receiver, ".")
         append(propertyName)
@@ -103,7 +97,7 @@ internal data class FunctionCall(
     private val functionName: Identifier,
     private val typeArguments: List<Type>,
     private val arguments: List<Expr>
-) : Expr() {
+) : Expr {
     override fun append(out: IndentedWriter) = with(out) {
         join(receiver, '.')
         append(functionName)
@@ -125,8 +119,8 @@ public data class IfExpr internal constructor(
     private val condition: Expr,
     @PublishedApi internal var then: Body?,
     @PublishedApi internal var `else`: Body?
-) : Expr() {
-    override fun append(out: IndentedWriter) = with(out) {
+) : Expr {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         append("if(")
         append(condition)
         append(") ")
@@ -137,7 +131,7 @@ public data class IfExpr internal constructor(
     }
 }
 
-@PublishedApi internal data class WhenEntry(private val condition: Expr?, private val body: Body) : Element() {
+@PublishedApi internal data class WhenEntry(private val condition: Expr?, private val body: Body) : Element {
     override fun append(out: IndentedWriter) = with(out) {
         if (condition != null) append(condition)
         else append("else")
@@ -146,14 +140,14 @@ public data class IfExpr internal constructor(
     }
 }
 
-internal data class WhenExpr(private val entries: List<WhenEntry>) : Expr() {
+internal data class WhenExpr(private val entries: List<WhenEntry>) : Expr {
     override fun append(out: IndentedWriter) = with(out) {
         append("when ")
         block(entries)
     }
 }
 
-internal sealed class SubjectWhenCondition : Element() {
+internal sealed class SubjectWhenCondition : Element {
     data class Equals(private val value: Expr) : SubjectWhenCondition() {
         override fun append(out: IndentedWriter) = value.append(out)
     }
@@ -176,7 +170,7 @@ internal sealed class SubjectWhenCondition : Element() {
 @PublishedApi internal data class SubjectWhenEntry(
     private val conditions: List<SubjectWhenCondition>?,
     private val body: Body
-) : Element() {
+) : Element {
     override fun append(out: IndentedWriter) = with(out) {
         if (conditions != null) join(conditions, ", ")
         else append("else")
@@ -185,7 +179,7 @@ internal sealed class SubjectWhenCondition : Element() {
     }
 }
 
-internal data class SubjectWhenExpr(private val subject: Expr, private val entries: List<SubjectWhenEntry>) : Expr() {
+internal data class SubjectWhenExpr(private val subject: Expr, private val entries: List<SubjectWhenEntry>) : Expr {
     override fun append(out: IndentedWriter) = with(out) {
         append("when(")
         append(subject)
@@ -197,7 +191,7 @@ internal data class SubjectWhenExpr(private val subject: Expr, private val entri
 @PublishedApi internal data class Closure(
     private val parameters: List<Parameter>,
     private val body: List<BlockElement>
-) : Expr() {
+) : Expr {
     override fun append(out: IndentedWriter) = with(out) {
         append("{ ")
         join(parameters, ", ")
@@ -221,7 +215,7 @@ internal data class SubjectWhenExpr(private val subject: Expr, private val entri
     }
 }
 
-internal object DummyExpr : Expr() {
+internal object DummyExpr : Expr {
     override fun append(out: IndentedWriter) {
         throw AssertionError("Cannot append dummy expr")
     }

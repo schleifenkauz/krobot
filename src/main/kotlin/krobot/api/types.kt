@@ -5,8 +5,11 @@
 package krobot.api
 
 import krobot.ast.*
+import krobot.impl.IndentedWriter
 
-public val Any.t: Type get() = UncheckedType(toString())
+public val Any.t: Type get() = RawElement(toString())
+
+public fun type(block: IndentedWriter.() -> Unit): Type = UserDefinedElement(block)
 
 public fun type(raw: Identifier, arguments: List<TypeProjection>): Type = GenericType(raw, arguments)
 

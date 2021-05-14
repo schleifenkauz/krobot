@@ -5,6 +5,8 @@
 package krobot
 
 import krobot.api.*
+import krobot.ast.Expr
+import krobot.ast.Template
 import org.junit.jupiter.api.Test
 
 class KRobotTest {
@@ -12,9 +14,9 @@ class KRobotTest {
     fun sample1() {
         val f = kotlinFile {
             `package`("com.example")
-            internal.`object`("Main").body {
-                `@`("JvmStatic").`fun`("main", "args" of "Array<String>").body {
-                    `val`("msg") initializedWith `when`("args".e.select("size")) {
+            +internal.`object`("Main").body {
+                +`@`("JvmStatic").`fun`("main", "args" of "Array<String>").body {
+                    +`val`("msg") initializedWith `when`("args".e.select("size")) {
                         lit(0) then lit("This is not possible...")
                         lit(1) then lit("Oh no, you provided no arguments")
                         `in`(lit(2)..lit(5)) then lit("The number of arguments is ok")
@@ -31,14 +33,14 @@ class KRobotTest {
         val file = kotlinFile {
             import("kotlin.random.Random")
             `package`("foo.bar")
-            abstract.`class`("ExampleClass", `in`("T"))
+            +abstract.`class`("ExampleClass", `in`("T"))
                 .primaryConstructor(
                     `@`("PublishedApi").internal,
                     private.`val`.parameter("wrapped") of type("List", "Int")
                 )
                 .implements(type("List", "Int"), by = get("wrapped"))
                 .extends("Any", emptyList()) body {
-                inline.`fun`(
+                +inline.`fun`(
                     listOf(invariant("T") lowerBound "Any"),
                     "f",
                     "x" of "Int" default lit(3),
@@ -74,17 +76,39 @@ class KRobotTest {
                         }
                     }
                 }
-                private.constructor("test" of "Int").delegate("listOf"("test".e, "Random".e.call("nextInt")))
-                abstract.`fun`("f") returnType "Int"
-                public.`class`("Inner")
-                internal.enum("E").primaryConstructor(`val`.parameter("x") of "Int".t).body {
-                    abstract.`fun`("f") returnType "Int"
-                    "X"("1".e) {
-                        override.`fun`("f") returnType "Int" returns "1".e
+                +private.constructor("test" of "Int").delegate("listOf"("test".e, "Random".e.call("nextInt")))
+                +abstract.`fun`("f") returnType "Int"
+                +public.`class`("Inner")
+                +internal.enum("E").primaryConstructor(`val`.parameter("x") of "Int".t).body {
+                    +abstract.`fun`("f") returnType "Int"
+                    +"X"("1".e) {
+                        +override.`fun`("f") returnType "Int" returns "1".e
                     }
                 }
             }
         }
         println(file.pretty())
+    }
+
+    @Test
+    fun sample3() {
+        val f = kotlinScript {
+            write {
+                append("//hello world")
+            }
+            +multilineComment(
+                "a",
+                "b",
+                "c"
+            )
+            +"val x = 1"
+            +"val {@0} = {@1}".format("y", lit(2) + lit(3))
+            +`fun`("f", "vararg xs" of "Int") returnType "Int" returns "xs".e.call("asList").call("sum()")
+            +"val f = 0"
+            val template = Template.parse("val {@0} = f{(*, 1?)}")
+            +template.format("a", listOf(lit(1), lit(2), lit(3)))
+            +template.format("b", emptyList<Expr>())
+        }
+        println(f.pretty())
     }
 }

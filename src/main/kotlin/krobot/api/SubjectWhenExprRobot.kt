@@ -35,7 +35,7 @@ public class SubjectWhenExprRobot @PublishedApi internal constructor(
     }
 
     public inline infix fun Conditions.then(block: BlockRobot.() -> Unit) {
-        add(SubjectWhenEntry(conditions, makeBody(imports, block)))
+        add(SubjectWhenEntry(conditions, BlockRobot(imports).apply(block).finish()))
     }
 
     public infix fun Expr.then(body: Expr) {
@@ -53,7 +53,7 @@ public class SubjectWhenExprRobot @PublishedApi internal constructor(
     public val `else`: Expr get() = "else".e
 
     public inline infix fun `else`(block: BlockRobot.() -> Unit) {
-        add(SubjectWhenEntry(null, makeBody(imports, block)))
+        add(SubjectWhenEntry(null, BlockRobot(imports).apply(block).finish()))
     }
 
     @PublishedApi internal fun finish(): SubjectWhenExpr = SubjectWhenExpr(subject, entries)

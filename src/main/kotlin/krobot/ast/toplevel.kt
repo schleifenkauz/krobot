@@ -4,23 +4,25 @@
 
 package krobot.ast
 
-import krobot.ast.IndentedWriter.NewLine
-import java.io.*
+import krobot.impl.IndentedWriter
+import java.io.Closeable
+import java.io.File
+import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 
 public data class Import internal constructor(
     internal val name: Identifier,
     internal var alias: String? = null
-) : Element() {
-    override fun append(out: IndentedWriter) = with(out) {
+) : Element {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         append("import ")
         append(name)
         join(" as ", alias)
     }
 }
 
-public abstract class TopLevelElement internal constructor() : Element() {
+public abstract class TopLevelElement internal constructor() : Element {
     internal abstract val packageName: String?
     internal abstract val defaultExtension: String
 
@@ -68,7 +70,7 @@ public data class KotlinFile @PublishedApi internal constructor(
     override val defaultExtension: String
         get() = ".kt"
 
-    override fun append(out: IndentedWriter) = with(out) {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         join("package ", packageName)
         join(imports, NewLine, prefix = NewLine)
         join(declarations, NewLine, prefix = NewLine)
@@ -83,7 +85,7 @@ public data class KotlinScript @PublishedApi internal constructor(
     override val defaultExtension: String
         get() = ".kts"
 
-    override fun append(out: IndentedWriter) = with(out) {
+    override fun append(out: IndentedWriter): Unit = with(out) {
         join("package ", packageName)
         join(imports, NewLine, postfix = NewLine)
         join(elements, NewLine)

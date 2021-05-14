@@ -4,10 +4,12 @@
 
 package krobot.ast
 
-public sealed class Element {
-    internal abstract fun append(out: IndentedWriter)
+import krobot.impl.IndentedWriter
 
-    internal fun pretty(): String {
+public sealed interface Element {
+    public fun append(out: IndentedWriter)
+
+    public fun pretty(): String {
         val out = StringBuilder()
         append(IndentedWriter(out))
         return out.toString()

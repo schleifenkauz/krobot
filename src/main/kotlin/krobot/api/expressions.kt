@@ -2,9 +2,12 @@
  * @author Nikolaus Knop
  */
 
+@file: Suppress("DANGEROUS_CHARACTERS")
+
 package krobot.api
 
 import krobot.ast.*
+import krobot.impl.IndentedWriter
 
 public fun lit(value: Boolean): Expr = Literal("$value")
 public fun lit(value: Byte): Expr = Literal("${value}.toByte()")
@@ -20,7 +23,9 @@ public val `this`: Expr get() = get("this")
 public fun `this`(scope: String): Expr = get("this@$scope")
 public val `super`: Expr get() = get("super")
 
-public val Any?.e: Expr get() = UncheckedExpr(toString())
+public val Any?.e: Expr get() = RawElement(toString())
+
+public fun expr(block: IndentedWriter.() -> Unit): Expr = UserDefinedElement(block)
 
 public infix fun Expr.select(name: Identifier): Expr = PropertyAccess(this, name)
 
@@ -70,7 +75,7 @@ public fun Expr.call(name: Identifier, vararg arguments: Expr): Expr =
 public infix fun Expr.call(name: Identifier): Expr = call(name, emptyList<Type>())
 
 public inline fun KotlinRobot.closure(parameters: List<Parameter>, block: BlockRobot.() -> Unit): Expr {
-    val body = makeBody(imports, block)
+    val body = BlockRobot(imports).apply(block).finish()
     return Closure(parameters, body.statements)
 }
 
@@ -123,7 +128,7 @@ public infix fun IfExpr.then(expr: Expr): IfExpr {
 }
 
 public inline infix fun IfExpr.then(block: BlockRobot.() -> Unit): IfExpr {
-    then = makeBody(imports, block)
+    then = BlockRobot(imports).apply(block).finish()
     return this
 }
 
@@ -133,7 +138,7 @@ public infix fun IfExpr.`else`(expr: Expr): IfExpr {
 }
 
 public inline infix fun IfExpr.`else`(block: BlockRobot.() -> Unit): IfExpr {
-    `else` = makeBody(imports, block)
+    `else` = BlockRobot(imports).apply(block).finish()
     return this
 }
 

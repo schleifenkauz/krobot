@@ -27,7 +27,7 @@ public infix fun Fun.returnType(raw: String): Fun = returnType(type(raw))
 
 public infix fun Fun.body(block: BlockRobot.() -> Unit): Fun = apply {
     val imports = imports
-    body = Block(makeBody(imports, block))
+    body = Block(BlockRobot(imports).apply(block).finish())
 }
 
 public infix fun Fun.returns(expr: Expr): Fun = apply {

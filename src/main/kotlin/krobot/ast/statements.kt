@@ -4,9 +4,11 @@
 
 package krobot.ast
 
-public sealed class Statement : BlockElement()
+import krobot.impl.IndentedWriter
 
-internal data class Assignment(private val assigned: Assignable, private val value: Expr) : Statement() {
+public sealed interface Statement : BlockElement
+
+internal data class Assignment(private val assigned: Assignable, private val value: Expr) : Statement {
     override fun append(out: IndentedWriter) = with(out) {
         append(assigned)
         append(" = ")
@@ -18,7 +20,7 @@ internal data class AugmentedAssignment(
     private val assigned: Assignable,
     private val operator: String,
     private val value: Expr
-) : Statement() {
+) : Statement {
     override fun append(out: IndentedWriter) = with(out) {
         append(assigned)
         space()
@@ -28,7 +30,7 @@ internal data class AugmentedAssignment(
     }
 }
 
-@PublishedApi internal data class Body(val statements: List<BlockElement>) : Element() {
+@PublishedApi internal data class Body(val statements: List<BlockElement>) : Element {
     override fun append(out: IndentedWriter) {
         if (statements.size == 1) statements.single().append(out)
         else out.block(statements)
@@ -40,7 +42,7 @@ internal data class AugmentedAssignment(
     private val type: Type?,
     private val iterable: Expr,
     private val body: Body
-) : Statement() {
+) : Statement {
     override fun append(out: IndentedWriter) = with(out) {
         append("for(")
         append(name)
@@ -52,7 +54,7 @@ internal data class AugmentedAssignment(
     }
 }
 
-@PublishedApi internal data class WhileLoop(private val condition: Expr, private val body: Body) : Statement() {
+@PublishedApi internal data class WhileLoop(private val condition: Expr, private val body: Body) : Statement {
     override fun append(out: IndentedWriter) = with(out) {
         append("while(")
         append(condition)

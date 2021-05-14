@@ -18,7 +18,7 @@ public class WhenExprRobot @PublishedApi internal constructor(imports: ImportsCo
     }
 
     public inline infix fun Expr.then(block: BlockRobot.() -> Unit) {
-        add(WhenEntry(this, makeBody(imports, block)))
+        add(WhenEntry(this, BlockRobot(imports).apply(block).finish()))
     }
 
     public infix fun `else`(body: Expr) {
@@ -26,7 +26,7 @@ public class WhenExprRobot @PublishedApi internal constructor(imports: ImportsCo
     }
 
     public inline infix fun `else`(block: BlockRobot.() -> Unit) {
-        add(WhenEntry(null, makeBody(imports, block)))
+        add(WhenEntry(null, BlockRobot(imports).apply(block).finish()))
     }
 
     @PublishedApi internal fun finish(): WhenExpr = WhenExpr(entries)

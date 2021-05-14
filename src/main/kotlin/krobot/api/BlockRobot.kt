@@ -19,25 +19,19 @@ public open class BlockRobot @PublishedApi internal constructor(
         add(this)
     }
 
-    public inline fun `for`(name: String, type: Type? = null, `in`: Expr, block: BlockRobot.() -> Unit) {
-        val body = makeBody(imports, block)
-        add(ForLoop(name, type, `in`, body))
+    public inline fun `for`(name: String, type: Type? = null, `in`: Expr, block: BlockRobot.() -> Unit): Statement {
+        val body = BlockRobot(imports).apply(block).finish()
+        return ForLoop(name, type, `in`, body)
     }
 
-    public inline fun `while`(condition: Expr, block: BlockRobot.() -> Unit) {
-        val body = makeBody(imports, block)
-        add(WhileLoop(condition, body))
+    public inline fun `while`(condition: Expr, block: BlockRobot.() -> Unit): Statement {
+        val body = BlockRobot(imports).apply(block).finish()
+        return WhileLoop(condition, body)
     }
 
-    private fun Modifiers.addProperty(valOrVar: String, name: String): BasicProperty {
-        val def = BasicProperty(imports, modifiers, valOrVar, name)
-        add(def)
-        return def
-    }
+    public open infix fun Modifiers.`val`(name: String): BasicProperty = BasicProperty(imports, modifiers, "val", name)
 
-    public infix fun Modifiers.`val`(name: String): BasicProperty = addProperty("val", name)
-
-    public infix fun Modifiers.`var`(name: String): BasicProperty = addProperty("var", name)
+    public open infix fun Modifiers.`var`(name: String): BasicProperty = BasicProperty(imports, modifiers, "var", name)
 
     public infix fun Assignable.assign(value: Expr) {
         add(Assignment(this, value))
@@ -91,5 +85,7 @@ public open class BlockRobot @PublishedApi internal constructor(
         PropertyAccess(null, this) %= value
     }
 
-    @PublishedApi internal fun finish() = Body(elements)
+    public operator fun <E: BlockElement> E.unaryPlus(): E = add(this)
+
+    @PublishedApi internal fun finish(): Body = Body(elements)
 }

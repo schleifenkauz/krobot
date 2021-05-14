@@ -14,14 +14,12 @@ public class KotlinFileRobot @PublishedApi internal constructor() :
         packageName = name
     }
 
-    public fun Modifiers.typeAlias(name: String, parameters: List<String>, type: Type) {
-        add(TypeAlias(modifiers, name, parameters, type))
-    }
+    public fun Modifiers.typeAlias(name: String, parameters: List<String>, type: Type): Declaration =
+        TypeAlias(modifiers, name, parameters, type)
 
-    public fun Modifiers.typeAlias(name: String, type: Type) {
-        typeAlias(name, emptyList(), type)
-    }
+    public fun Modifiers.typeAlias(name: String, type: Type): Declaration = typeAlias(name, emptyList(), type)
 
-    @PublishedApi internal fun finishFile(): KotlinFile =
+    @PublishedApi
+    internal fun finishFile(): KotlinFile =
         KotlinFile(packageName, imports.finish(), declarations())
 }
