@@ -1,33 +1,31 @@
 buildscript {
     repositories {
         mavenCentral()
-        jcenter()
     }
     dependencies {
         classpath 'org.jetbrains.dokka:dokka-gradle-plugin:0.9.17'
-        classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
     }
 }
 
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.5.0'
-    id 'com.github.nkb03.hextant-library' version '0.1-SNAPSHOT'
-    id 'io.codearte.nexus-staging' version '0.21.2'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.25'
+    id 'maven-publish'
 }
 
-hextant_lib {
-    description = "Enhanced version of kotlin-robot"
-}
-
-kotlin {
-    explicitApi = 'warning'
-}
-
-group 'com.github.nkb03'
-version '1.0'
+group 'de.schleifenkauz'
+version '1.1-SNAPSHOT'
 
 repositories {
     mavenCentral()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            artifact kotlinSourcesJar
+        }
+    }
 }
 
 dependencies {
@@ -37,11 +35,9 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 }
 
+sourceCompatibility = 19
 compileKotlin {
-    kotlinOptions.jvmTarget = "11"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = 19
 }
 
 test {
