@@ -8,9 +8,9 @@ import krobot.api.ImportsCollector
 import krobot.ast.PropertyInitializer.None
 import krobot.impl.IndentedWriter
 
-public sealed interface BlockElement : Element
+sealed interface BlockElement : Element
 
-public sealed interface Declaration : BlockElement
+sealed interface Declaration : BlockElement
 
 internal sealed class PropertyInitializer : Element {
     object None : PropertyInitializer() {
@@ -42,28 +42,28 @@ internal fun IndentedWriter.block(elements: List<Element>) {
 }
 
 
-public sealed interface FunctionBody : Element {
-    public data class SingleExpr @PublishedApi internal constructor(private val expr: Expr) : FunctionBody {
+sealed interface FunctionBody : Element {
+    data class SingleExpr @PublishedApi internal constructor(private val expr: Expr) : FunctionBody {
         override fun append(out: IndentedWriter): Unit = with(out) {
             append(" = ")
             append(expr)
         }
     }
 
-    public data class Block @PublishedApi internal constructor(private val body: Body) : FunctionBody {
+    data class Block @PublishedApi internal constructor(private val body: Body) : FunctionBody {
         override fun append(out: IndentedWriter): Unit = out.block(body.statements)
     }
 }
 
-internal sealed interface Modifier : Element
+sealed interface Modifier : Element
 
-internal data class KeywordModifier(private val keyword: String) : Modifier {
+data class KeywordModifier(private val keyword: String) : Modifier {
     override fun append(out: IndentedWriter) = with(out) {
         append(keyword)
     }
 }
 
-internal data class AnnotationModifier(private val clazz: String, private val arguments: List<Expr>) : Modifier {
+data class AnnotationModifier(private val clazz: String, private val arguments: List<Expr>) : Modifier {
     override fun append(out: IndentedWriter) = with(out) {
         append('@')
         append(clazz)
@@ -71,7 +71,7 @@ internal data class AnnotationModifier(private val clazz: String, private val ar
     }
 }
 
-@PublishedApi internal data class Getter(val modifiers: List<Modifier>, val body: FunctionBody?) : Element {
+data class Getter(val modifiers: List<Modifier>, val body: FunctionBody?) : Element {
     override fun append(out: IndentedWriter) = with(out) {
         indented {
             join(modifiers, Space, postfix = Space)
@@ -84,7 +84,7 @@ internal data class AnnotationModifier(private val clazz: String, private val ar
     }
 }
 
-@PublishedApi internal data class Setter(
+data class Setter(
     val modifiers: List<Modifier>,
     val parameterName: String,
     val body: FunctionBody?
@@ -101,7 +101,7 @@ internal data class AnnotationModifier(private val clazz: String, private val ar
     }
 }
 
-public open class BasicProperty internal constructor(
+open class BasicProperty internal constructor(
     @PublishedApi internal val imports: ImportsCollector,
     private val modifiers: List<Modifier>,
     private val valOrVar: String,
@@ -122,7 +122,7 @@ public open class BasicProperty internal constructor(
     }
 }
 
-public class AdvancedProperty @PublishedApi internal constructor(
+class AdvancedProperty @PublishedApi internal constructor(
     imports: ImportsCollector,
     modifiers: List<Modifier>,
     valOrVar: String,
@@ -140,9 +140,9 @@ public class AdvancedProperty @PublishedApi internal constructor(
     }
 }
 
-public data class Parameter @PublishedApi internal constructor(
-    private val name: Identifier,
-    private val modifiers: List<Modifier> = emptyList(),
+data class Parameter @PublishedApi internal constructor(
+    val name: Identifier,
+    val modifiers: List<Modifier> = emptyList(),
     val type: Type? = null,
     val defaultValue: Expr? = null
 ) : Element {
@@ -154,7 +154,7 @@ public data class Parameter @PublishedApi internal constructor(
     }
 }
 
-public data class TypeParameter internal constructor(
+data class TypeParameter internal constructor(
     private val variance: Variance,
     private val name: Identifier,
     private var lowerBound: Type?
@@ -166,7 +166,7 @@ public data class TypeParameter internal constructor(
     }
 }
 
-public data class Fun @PublishedApi internal constructor(
+data class Fun @PublishedApi internal constructor(
     internal val imports: ImportsCollector,
     private val name: Identifier,
     private val modifiers: List<Modifier>,
@@ -191,7 +191,7 @@ public data class Fun @PublishedApi internal constructor(
     }
 }
 
-public data class Constructor internal constructor(
+data class Constructor internal constructor(
     @PublishedApi internal val imports: ImportsCollector,
     private val modifiers: List<Modifier>,
     private val parameters: List<Parameter>,
@@ -222,31 +222,31 @@ internal data class Supertype(val type: Type, val arguments: List<Expr>?, val de
     }
 }
 
-public interface HasPrimaryConstructor: DeclarationType
-public interface HasTypeParameters: DeclarationType
-public interface CanImplement: DeclarationType
-public interface CanExtend: CanImplement
+interface HasPrimaryConstructor: DeclarationType
+interface HasTypeParameters: DeclarationType
+interface CanImplement: DeclarationType
+interface CanExtend: CanImplement
 
-public sealed interface DeclarationType {
-    public object Interface: HasTypeParameters, CanImplement {
+sealed interface DeclarationType {
+    object Interface: HasTypeParameters, CanImplement {
         override fun toString(): String = "interface"
     }
 
-    public object Class: HasTypeParameters, CanExtend, HasPrimaryConstructor {
+    object Class: HasTypeParameters, CanExtend, HasPrimaryConstructor {
         override fun toString(): String = "class"
     }
 
-    public object Object: CanExtend {
+    object Object: CanExtend {
         override fun toString(): String = "object"
     }
 
-    public object Enum : CanImplement, HasPrimaryConstructor {
+    object Enum : CanImplement, HasPrimaryConstructor {
         override fun toString(): String = "enum class"
     }
 }
 
 
-public data class EnumEntry @PublishedApi internal constructor(
+data class EnumEntry @PublishedApi internal constructor(
     val name: Identifier,
     val arguments: List<Expr>,
     val declarations: List<Declaration>?
@@ -258,7 +258,7 @@ public data class EnumEntry @PublishedApi internal constructor(
     }
 }
 
-public data class ClassDefinition<out T: DeclarationType> internal constructor(
+data class ClassDefinition<out T: DeclarationType> internal constructor(
     @PublishedApi internal val imports: ImportsCollector,
     private val modifiers: List<Modifier>,
     private val declarationType: T,
