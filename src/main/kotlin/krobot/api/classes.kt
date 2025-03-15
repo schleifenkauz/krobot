@@ -22,6 +22,7 @@ public fun <C : ClassDefinition<HasPrimaryConstructor>> C.primaryConstructor(
     modifiers: Modifiers,
     parameters: List<Parameter>
 ): C = apply {
+    hasPrimaryConstructor = true
     constructorModifiers = modifiers.modifiers
     constructorParameters = parameters
 }

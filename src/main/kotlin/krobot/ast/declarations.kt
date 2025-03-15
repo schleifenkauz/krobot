@@ -264,6 +264,7 @@ data class ClassDefinition<out T: DeclarationType> internal constructor(
     private val declarationType: T,
     @PublishedApi internal val name: Identifier,
     internal val typeParameters: MutableList<TypeParameter> = mutableListOf(),
+    internal var hasPrimaryConstructor: Boolean = false,
     internal var constructorModifiers: List<Modifier> = emptyList(),
     internal var constructorParameters: List<Parameter> = emptyList(),
     internal val supertypes: MutableList<Supertype> = mutableListOf(),
@@ -279,6 +280,9 @@ data class ClassDefinition<out T: DeclarationType> internal constructor(
         space()
         join(constructorModifiers, " ", postfix = " constructor")
         join(constructorParameters, ", ", "(", ")")
+        if (hasPrimaryConstructor && constructorParameters.isEmpty()) {
+            append("()")
+        }
         join(supertypes, ", ", prefix = ": ")
         space()
         if (enumEntries != null || declarations != null) {
