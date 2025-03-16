@@ -15,7 +15,7 @@ public open class AdvancedDeclarationsRobot @PublishedApi internal constructor(
 
     public infix fun Modifiers.`val`(name: String): AdvancedProperty = addProperty("val", name)
 
-    public infix fun Modifiers.`var`(name: String): AdvancedProperty = addProperty("val", name)
+    public infix fun Modifiers.`var`(name: String): AdvancedProperty = addProperty("var", name)
 
     public fun Type.`val`(name: String, modifiers: Modifiers): AdvancedProperty = with(modifiers) {
         addProperty("val", name, receiver = this@`val`)
