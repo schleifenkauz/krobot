@@ -6,7 +6,7 @@ package krobot.api
 
 import krobot.ast.*
 
-public open class Modifiers internal constructor(@PublishedApi internal val modifiers: List<Modifier> = emptyList())
+open class Modifiers internal constructor(@PublishedApi internal val modifiers: List<Modifier> = emptyList())
 
 private fun Modifiers.add(modifier: Modifier) = Modifiers(modifiers + modifier)
 
@@ -14,127 +14,128 @@ private fun Modifiers.add(modifier: String) = add(KeywordModifier(modifier))
 
 private fun singleModifier(modifier: String) = Modifiers(listOf(KeywordModifier(modifier)))
 
-public val noModifiers: Modifiers get() = Modifiers()
+val modifiers: Modifiers get() = Modifiers()
+val noModifiers: Modifiers get() = Modifiers()
 
-public val Modifiers.public: Modifiers
+val Modifiers.public: Modifiers
     get() = add("public")
-public val Modifiers.protected: Modifiers
+val Modifiers.protected: Modifiers
     get() = add("protected")
-public val Modifiers.private: Modifiers
+val Modifiers.private: Modifiers
     get() = add("private")
-public val Modifiers.internal: Modifiers
+val Modifiers.internal: Modifiers
     get() = add("internal")
-public val Modifiers.expect: Modifiers
+val Modifiers.expect: Modifiers
     get() = add("expect")
-public val Modifiers.actual: Modifiers
+val Modifiers.actual: Modifiers
     get() = add("actual")
-public val Modifiers.final: Modifiers
+val Modifiers.final: Modifiers
     get() = add("final")
-public val Modifiers.open: Modifiers
+val Modifiers.open: Modifiers
     get() = add("open")
-public val Modifiers.abstract: Modifiers
+val Modifiers.abstract: Modifiers
     get() = add("abstract")
-public val Modifiers.sealed: Modifiers
+val Modifiers.sealed: Modifiers
     get() = add("sealed")
-public val Modifiers.const: Modifiers
+val Modifiers.const: Modifiers
     get() = add("const")
-public val Modifiers.external: Modifiers
+val Modifiers.external: Modifiers
     get() = add("external")
-public val Modifiers.override: Modifiers
+val Modifiers.override: Modifiers
     get() = add("override")
-public val Modifiers.lateinit: Modifiers
+val Modifiers.lateinit: Modifiers
     get() = add("lateinit")
-public val Modifiers.tailrec: Modifiers
+val Modifiers.tailrec: Modifiers
     get() = add("tailrec")
-public val Modifiers.vararg: Modifiers
+val Modifiers.vararg: Modifiers
     get() = add("vararg")
-public val Modifiers.noinline: Modifiers
+val Modifiers.noinline: Modifiers
     get() = add("noinline")
-public val Modifiers.crossinline: Modifiers
+val Modifiers.crossinline: Modifiers
     get() = add("crossinline")
-public val Modifiers.suspend: Modifiers
+val Modifiers.suspend: Modifiers
     get() = add("suspend")
-public val Modifiers.inner: Modifiers
+val Modifiers.inner: Modifiers
     get() = add("inner")
-public val Modifiers.annotation: Modifiers
+val Modifiers.annotation: Modifiers
     get() = add("annotation")
-public val Modifiers.`fun`: Modifiers
+val Modifiers.`fun`: Modifiers
     get() = add("fun")
-public val Modifiers.companion: Modifiers
+val Modifiers.companion: Modifiers
     get() = add("companion")
-public val Modifiers.inline: Modifiers
+val Modifiers.inline: Modifiers
     get() = add("inline")
-public val Modifiers.infix: Modifiers
+val Modifiers.infix: Modifiers
     get() = add("infix")
-public val Modifiers.operator: Modifiers
+val Modifiers.operator: Modifiers
     get() = add("operator")
-public val Modifiers.data: Modifiers
+val Modifiers.data: Modifiers
     get() = add("data")
-public val Modifiers.`val`: Modifiers
+val Modifiers.`val`: Modifiers
     get() = add("val")
-public val Modifiers.`var`: Modifiers
+val Modifiers.`var`: Modifiers
     get() = add("var")
 
-public val public: Modifiers
+val public: Modifiers
     get() = singleModifier("public")
-public val protected: Modifiers
+val protected: Modifiers
     get() = singleModifier("protected")
-public val private: Modifiers
+val private: Modifiers
     get() = singleModifier("private")
-public val internal: Modifiers
+val internal: Modifiers
     get() = singleModifier("internal")
-public val expect: Modifiers
+val expect: Modifiers
     get() = singleModifier("expect")
-public val actual: Modifiers
+val actual: Modifiers
     get() = singleModifier("actual")
-public val final: Modifiers
+val final: Modifiers
     get() = singleModifier("final")
-public val open: Modifiers
+val open: Modifiers
     get() = singleModifier("open")
-public val abstract: Modifiers
+val abstract: Modifiers
     get() = singleModifier("abstract")
-public val sealed: Modifiers
+val sealed: Modifiers
     get() = singleModifier("sealed")
-public val const: Modifiers
+val const: Modifiers
     get() = singleModifier("const")
-public val external: Modifiers
+val external: Modifiers
     get() = singleModifier("external")
-public val override: Modifiers
+val override: Modifiers
     get() = singleModifier("override")
-public val lateinit: Modifiers
+val lateinit: Modifiers
     get() = singleModifier("lateinit")
-public val tailrec: Modifiers
+val tailrec: Modifiers
     get() = singleModifier("tailrec")
-public val vararg: Modifiers
+val vararg: Modifiers
     get() = singleModifier("vararg")
-public val noinline: Modifiers
+val noinline: Modifiers
     get() = singleModifier("noinline")
-public val crossinline: Modifiers
+val crossinline: Modifiers
     get() = singleModifier("crossinline")
-public val suspend: Modifiers
+val suspend: Modifiers
     get() = singleModifier("suspend")
-public val inner: Modifiers
+val inner: Modifiers
     get() = singleModifier("inner")
-public val annotation: Modifiers
+val annotation: Modifiers
     get() = singleModifier("annotation")
-public val `fun`: Modifiers
+val `fun`: Modifiers
     get() = singleModifier("`fun`")
-public val companion: Modifiers
+val companion: Modifiers
     get() = singleModifier("companion")
-public val inline: Modifiers
+val inline: Modifiers
     get() = singleModifier("inline")
-public val infix: Modifiers
+val infix: Modifiers
     get() = singleModifier("infix")
-public val operator: Modifiers
+val operator: Modifiers
     get() = singleModifier("operator")
-public val data: Modifiers
+val data: Modifiers
     get() = singleModifier("data")
-public val `val`: Modifiers
+val `val`: Modifiers
     get() = singleModifier("`val`")
-public val `var`: Modifiers
+val `var`: Modifiers
     get() = singleModifier("`var`")
 
-public fun Modifiers.`@`(clazz: String, vararg arguments: Expr): Modifiers =
+fun Modifiers.`@`(clazz: String, vararg arguments: Expr): Modifiers =
     add(AnnotationModifier(clazz, arguments.asList()))
 
-public fun `@`(clazz: String, vararg arguments: Expr): Modifiers = noModifiers.`@`(clazz, *arguments)
+fun `@`(clazz: String, vararg arguments: Expr): AnnotationModifier = AnnotationModifier(clazz, arguments.asList())

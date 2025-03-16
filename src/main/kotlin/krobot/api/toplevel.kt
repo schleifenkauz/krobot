@@ -5,7 +5,6 @@
 package krobot.api
 
 import krobot.ast.*
-import kotlin.reflect.jvm.internal.impl.load.java.lazy.descriptors.ClassDeclaredMemberIndex
 
 public infix fun Import.`as`(alias: String): Import = copy(alias = alias)
 
@@ -29,10 +28,10 @@ public fun Modifiers.kotlinClass(
 ): ClassDefinition<DeclarationType.Class> = kotlinClass(name, typeParameters.asList())
 
 public fun kotlinClass(name: Identifier, typeParameters: List<TypeParameter>): ClassDefinition<DeclarationType.Class> =
-    noModifiers.kotlinClass(name, typeParameters)
+    modifiers.kotlinClass(name, typeParameters)
 
 public fun kotlinClass(name: Identifier, vararg typeParameters: TypeParameter): ClassDefinition<DeclarationType.Class> =
-    noModifiers.kotlinClass(name, *typeParameters)
+    modifiers.kotlinClass(name, *typeParameters)
 
 public fun Modifiers.kotlinInterface(
     name: Identifier,
@@ -48,26 +47,26 @@ public fun Modifiers.kotlinInterface(
 public fun kotlinInterface(
     name: Identifier,
     typeParameters: List<TypeParameter>
-): ClassDefinition<DeclarationType.Interface> = noModifiers.kotlinInterface(name, typeParameters)
+): ClassDefinition<DeclarationType.Interface> = modifiers.kotlinInterface(name, typeParameters)
 
 public fun kotlinInterface(
     name: Identifier,
     vararg typeParameters: TypeParameter
-): ClassDefinition<DeclarationType.Interface> = noModifiers.kotlinInterface(name, *typeParameters)
+): ClassDefinition<DeclarationType.Interface> = modifiers.kotlinInterface(name, *typeParameters)
 
 public fun Modifiers.kotlinObject(
     name: Identifier
 ): ClassDefinition<DeclarationType.Object> =
     ClassDefinition(ImportsCollector(), modifiers, DeclarationType.Object, name)
 
-public fun kotlinObject(name: Identifier): ClassDefinition<DeclarationType.Object> = noModifiers.kotlinObject(name)
+public fun kotlinObject(name: Identifier): ClassDefinition<DeclarationType.Object> = modifiers.kotlinObject(name)
 
 public fun Modifiers.kotlinEnum(
     name: Identifier
 ): ClassDefinition<DeclarationType.Enum> =
     ClassDefinition(ImportsCollector(), modifiers, DeclarationType.Enum, name, enumEntries = mutableListOf())
 
-public fun kotlinEnum(name: Identifier): ClassDefinition<DeclarationType.Enum> = noModifiers.kotlinEnum(name)
+public fun kotlinEnum(name: Identifier): ClassDefinition<DeclarationType.Enum> = modifiers.kotlinEnum(name)
 
 public inline fun ClassDefinition<*>.asFile(block: KotlinFileRobot.() -> Unit = {}): NamedTopLevelElement = kotlinFile {
     block()

@@ -6,9 +6,9 @@ package krobot.ast
 
 import krobot.impl.IndentedWriter
 
-public sealed interface TypeProjection : Element
+sealed interface TypeProjection : Element
 
-public sealed interface Type : TypeProjection
+sealed interface Type : TypeProjection
 
 internal enum class Variance(private val string: String) {
     IN("in "), OUT("out "), NONE("");
@@ -61,5 +61,12 @@ internal data class NullableType(internal val wrapped: Type) : Type {
         append(wrapped)
         if (wrapped is FunctionType) append(')')
         append('?')
+    }
+}
+
+internal data class AnnotatedType(internal val type: Type, internal val annotations: List<AnnotationModifier>) : Type {
+    override fun append(out: IndentedWriter) {
+        out.join(annotations, " ", postfix = " ")
+        type.append(out)
     }
 }
