@@ -6,7 +6,7 @@ package krobot.api
 
 import krobot.ast.*
 
-public open class BlockRobot @PublishedApi internal constructor(
+open class BlockRobot @PublishedApi internal constructor(
     imports: ImportsCollector,
     private val elements: MutableList<BlockElement> = mutableListOf()
 ) : BasicDeclarationsRobot(imports, elements) {
@@ -15,29 +15,29 @@ public open class BlockRobot @PublishedApi internal constructor(
         return element
     }
 
-    public operator fun Expr.unaryPlus() {
+    operator fun Expr.unaryPlus() {
         add(this)
     }
 
-    public inline fun `for`(name: String, type: Type? = null, `in`: Expr, block: BlockRobot.() -> Unit): Statement {
+    inline fun `for`(name: String, type: Type? = null, `in`: Expr, block: BlockRobot.() -> Unit): Statement {
         val body = BlockRobot(imports).apply(block).finish()
         return ForLoop(name, type, `in`, body)
     }
 
-    public inline fun `while`(condition: Expr, block: BlockRobot.() -> Unit): Statement {
+    inline fun `while`(condition: Expr, block: BlockRobot.() -> Unit): Statement {
         val body = BlockRobot(imports).apply(block).finish()
         return WhileLoop(condition, body)
     }
 
-    public open infix fun Modifiers.`val`(name: String): BasicProperty = BasicProperty(imports, modifiers, "val", name)
+    open infix fun Modifiers.`val`(name: String): BasicProperty = BasicProperty(imports, modifiers, "val", name)
 
-    public open infix fun Modifiers.`var`(name: String): BasicProperty = BasicProperty(imports, modifiers, "var", name)
+    open infix fun Modifiers.`var`(name: String): BasicProperty = BasicProperty(imports, modifiers, "var", name)
 
-    public infix fun Assignable.assign(value: Expr) {
+    infix fun Assignable.assign(value: Expr) {
         add(Assignment(this, value))
     }
 
-    public infix fun String.assign(value: Expr) {
+    infix fun String.assign(value: Expr) {
         PropertyAccess(null, this).assign(value)
     }
 
@@ -45,47 +45,47 @@ public open class BlockRobot @PublishedApi internal constructor(
         add(AugmentedAssignment(this, operator, value))
     }
 
-    public operator fun Assignable.plusAssign(value: Expr) {
+    operator fun Assignable.plusAssign(value: Expr) {
         augAssign("+", value)
     }
 
-    public operator fun String.plusAssign(value: Expr) {
+    operator fun String.plusAssign(value: Expr) {
         PropertyAccess(null, this) += value
     }
 
-    public operator fun Assignable.minusAssign(value: Expr) {
+    operator fun Assignable.minusAssign(value: Expr) {
         augAssign("-", value)
     }
 
-    public operator fun String.minusAssign(value: Expr) {
+    operator fun String.minusAssign(value: Expr) {
         PropertyAccess(null, this) -= value
     }
 
-    public operator fun Assignable.timesAssign(value: Expr) {
+    operator fun Assignable.timesAssign(value: Expr) {
         augAssign("*", value)
     }
 
-    public operator fun String.timesAssign(value: Expr) {
+    operator fun String.timesAssign(value: Expr) {
         PropertyAccess(null, this) *= value
     }
 
-    public operator fun Assignable.divAssign(value: Expr) {
+    operator fun Assignable.divAssign(value: Expr) {
         augAssign("/", value)
     }
 
-    public operator fun String.divAssign(value: Expr) {
+    operator fun String.divAssign(value: Expr) {
         PropertyAccess(null, this) /= value
     }
 
-    public operator fun Assignable.remAssign(value: Expr) {
+    operator fun Assignable.remAssign(value: Expr) {
         augAssign("%", value)
     }
 
-    public operator fun String.remAssign(value: Expr) {
+    operator fun String.remAssign(value: Expr) {
         PropertyAccess(null, this) %= value
     }
 
-    public operator fun <E: BlockElement> E.unaryPlus(): E = add(this)
+    operator fun <E: BlockElement> E.unaryPlus(): E = add(this)
 
     @PublishedApi internal fun finish(): Body = Body(elements)
 }

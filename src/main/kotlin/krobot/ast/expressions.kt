@@ -7,11 +7,11 @@ package krobot.ast
 import krobot.api.ImportsCollector
 import krobot.impl.IndentedWriter
 
-public interface Assignable
+interface Assignable
 
-public typealias Identifier = String
+typealias Identifier = String
 
-public sealed interface Expr : BlockElement
+sealed interface Expr : BlockElement
 
 internal data class Literal(private val string: String) : Expr {
     override fun append(out: IndentedWriter) {
@@ -114,7 +114,7 @@ internal data class FunctionCall(
     }
 }
 
-public data class IfExpr internal constructor(
+data class IfExpr internal constructor(
     @PublishedApi internal val imports: ImportsCollector,
     private val condition: Expr,
     @PublishedApi internal var then: Body?,

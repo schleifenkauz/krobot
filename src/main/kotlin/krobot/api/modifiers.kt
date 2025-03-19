@@ -119,7 +119,7 @@ val inner: Modifiers
 val annotation: Modifiers
     get() = singleModifier("annotation")
 val `fun`: Modifiers
-    get() = singleModifier("`fun`")
+    get() = singleModifier("fun")
 val companion: Modifiers
     get() = singleModifier("companion")
 val inline: Modifiers
@@ -131,9 +131,9 @@ val operator: Modifiers
 val data: Modifiers
     get() = singleModifier("data")
 val `val`: Modifiers
-    get() = singleModifier("`val`")
+    get() = singleModifier("val")
 val `var`: Modifiers
-    get() = singleModifier("`var`")
+    get() = singleModifier("var")
 
 fun Modifiers.`@`(clazz: String, vararg arguments: Expr): Modifiers =
     add(AnnotationModifier(clazz, arguments.asList()))

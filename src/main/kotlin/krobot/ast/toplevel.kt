@@ -11,7 +11,7 @@ import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 
-public data class Import internal constructor(
+data class Import internal constructor(
     internal val name: Identifier,
     internal var alias: String? = null
 ) : Element {
@@ -22,29 +22,29 @@ public data class Import internal constructor(
     }
 }
 
-public abstract class TopLevelElement internal constructor() : Element {
+abstract class TopLevelElement internal constructor() : Element {
     internal abstract val packageName: String?
     internal abstract val defaultExtension: String
 
-    public fun <A> saveTo(output: A) where A : Appendable, A : Closeable {
+    fun <A> saveTo(output: A) where A : Appendable, A : Closeable {
         val writer = IndentedWriter(output)
         append(writer)
         output.close()
     }
 
-    public fun saveTo(output: OutputStream) {
+    fun saveTo(output: OutputStream) {
         saveTo(output.bufferedWriter())
     }
 
-    public fun saveTo(file: File) {
+    fun saveTo(file: File) {
         saveTo(file.bufferedWriter())
     }
 
-    public fun saveTo(path: Path) {
+    fun saveTo(path: Path) {
         saveTo(Files.newBufferedWriter(path))
     }
 
-    public fun saveToSourceRoot(sourceRoot: File, fileName: String) {
+    fun saveToSourceRoot(sourceRoot: File, fileName: String) {
         val dir = packageName.orEmpty().split(".").fold(sourceRoot, File::resolve)
         dir.mkdirs()
         val file = dir.resolve(fileName.addExtension())
@@ -53,16 +53,16 @@ public abstract class TopLevelElement internal constructor() : Element {
 
     private fun String.addExtension() = if (contains('.')) this else "$this$defaultExtension"
 
-    public fun saveToSourceRoot(sourceRoot: Path, fileName: String) {
+    fun saveToSourceRoot(sourceRoot: Path, fileName: String) {
         saveToSourceRoot(sourceRoot.toFile(), fileName)
     }
 
-    public fun saveToSourceRoot(sourceRoot: String, fileName: String) {
+    fun saveToSourceRoot(sourceRoot: String, fileName: String) {
         saveToSourceRoot(File(sourceRoot), fileName)
     }
 }
 
-public data class KotlinFile @PublishedApi internal constructor(
+data class KotlinFile @PublishedApi internal constructor(
     override val packageName: String?,
     private val imports: List<Import>,
     internal val declarations: List<Declaration>
@@ -77,7 +77,7 @@ public data class KotlinFile @PublishedApi internal constructor(
     }
 }
 
-public data class KotlinScript @PublishedApi internal constructor(
+data class KotlinScript @PublishedApi internal constructor(
     override val packageName: String?,
     private val imports: List<Import>,
     private val elements: List<BlockElement>
@@ -92,7 +92,7 @@ public data class KotlinScript @PublishedApi internal constructor(
     }
 }
 
-public class NamedTopLevelElement(private val name: String, private val wrapped: TopLevelElement) : TopLevelElement() {
+class NamedTopLevelElement(private val name: String, private val wrapped: TopLevelElement) : TopLevelElement() {
     override val packageName: String?
         get() = wrapped.packageName
 
@@ -103,15 +103,15 @@ public class NamedTopLevelElement(private val name: String, private val wrapped:
         wrapped.append(out)
     }
 
-    public fun saveToSourceRoot(sourceRoot: File) {
+    fun saveToSourceRoot(sourceRoot: File) {
         saveToSourceRoot(sourceRoot, name)
     }
 
-    public fun saveToSourceRoot(sourceRoot: Path) {
+    fun saveToSourceRoot(sourceRoot: Path) {
         saveToSourceRoot(sourceRoot, name)
     }
 
-    public fun saveToSourceRoot(sourceRoot: String) {
+    fun saveToSourceRoot(sourceRoot: String) {
         saveToSourceRoot(sourceRoot, name)
     }
 }

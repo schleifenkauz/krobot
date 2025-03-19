@@ -212,6 +212,13 @@ data class Constructor internal constructor(
     }
 }
 
+internal data class InitializerBlock(val body: Body): Declaration {
+    override fun append(out: IndentedWriter): Unit = with(out) {
+        append("init ")
+        block(body.statements)
+    }
+}
+
 internal data class Supertype(val type: Type, val arguments: List<Expr>?, val delegate: Expr?) : Element {
     override fun append(out: IndentedWriter) = with(out) {
         append(type)

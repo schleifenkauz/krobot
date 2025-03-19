@@ -3,7 +3,7 @@ package krobot.templates
 import krobot.impl.CharSource
 import krobot.impl.IndentedWriter
 
-public class Template private constructor(private val raw: String, private val parts: List<Part>) {
+class Template private constructor(private val raw: String, private val parts: List<Part>) {
     override fun toString(): String = raw
 
     internal sealed interface Part
@@ -80,8 +80,8 @@ public class Template private constructor(private val raw: String, private val p
         }
     }
 
-    public companion object {
-        public fun parse(raw: String): Template {
+    companion object {
+        fun parse(raw: String): Template {
             val src = CharSource(raw)
             val parts = parseParts(src, braceNesting = 0, bracketNesting = 0)
             return Template(raw, parts)

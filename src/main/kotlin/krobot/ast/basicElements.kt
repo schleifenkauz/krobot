@@ -3,17 +3,17 @@ package krobot.ast
 import krobot.impl.IndentedWriter
 import krobot.templates.Template
 
-public object NoElement : Element {
+object NoElement : Element {
     override fun append(out: IndentedWriter) {}
 }
 
-public object NewLine : Element {
+object NewLine : Element {
     override fun append(out: IndentedWriter) {
         out.appendLine()
     }
 }
 
-public object Space : Element {
+object Space : Element {
     override fun append(out: IndentedWriter) {
         out.space()
     }
@@ -26,7 +26,7 @@ internal data class SingleLineComment(private val content: String) : Declaration
     }
 }
 
-public data class MultiLineComment(
+data class MultiLineComment(
     private val lines: List<String>,
     private val isKDoc: Boolean
 ) : Declaration {
@@ -41,7 +41,7 @@ public data class MultiLineComment(
     }
 }
 
-public interface UniversalElement : Declaration, Statement, Expr, Type
+interface UniversalElement : Declaration, Statement, Expr, Type
 
 internal data class RawElement(private val str: String) : UniversalElement {
     override fun append(out: IndentedWriter) {

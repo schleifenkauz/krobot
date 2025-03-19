@@ -14,36 +14,36 @@ import kotlin.reflect.*
 import kotlin.reflect.jvm.jvmErasure
 
 @KotlinRobotDsl
-public abstract class KotlinRobot internal constructor(
+abstract class KotlinRobot internal constructor(
     @PublishedApi internal val imports: ImportsCollector
 ) : Modifiers() {
-    public fun import(className: String): Import {
+    fun import(className: String): Import {
         val import = Import(className)
         imports.add(import)
         return import
     }
 
-    public fun import(element: TypeElement): Type {
+    fun import(element: TypeElement): Type {
         import(element.toString())
         return type(element.simpleName.toString())
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    public inline fun <reified T : Any> import(): Type = import(typeOf<T>())
+    inline fun <reified T : Any> import(): Type = import(typeOf<T>())
 
-    public fun import(cls: KClass<*>): Type {
+    fun import(cls: KClass<*>): Type {
         val fqName = cls.qualifiedName ?: error("illegal anonymous type")
         import(fqName)
         return type(cls.simpleName!!)
     }
 
-    public fun import(clazz: Class<*>): Type {
+    fun import(clazz: Class<*>): Type {
         val fqName = clazz.name
         import(fqName)
         return type(clazz.simpleName)
     }
 
-    public fun import(type: java.lang.reflect.Type): Type = when (type) {
+    fun import(type: java.lang.reflect.Type): Type = when (type) {
         is Class<*>                          -> import(type)
         is ParameterizedType                 -> {
             val raw = type.rawType as Class<*>
@@ -56,12 +56,12 @@ public abstract class KotlinRobot internal constructor(
         else                                 -> error("Unknown type $type")
     }
 
-    public fun import(type: KType): Type {
+    fun import(type: KType): Type {
         import(type.jvmErasure)
         return type(type.jvmErasure.simpleName!!, type.arguments.map { t -> t.type?.let { import(it) } ?: star })
     }
 
-    public fun import(type: TypeMirror): Type = when (type) {
+    fun import(type: TypeMirror): Type = when (type) {
         is DeclaredType   -> {
             val element = type.asElement() as TypeElement
             import(element.qualifiedName.toString())

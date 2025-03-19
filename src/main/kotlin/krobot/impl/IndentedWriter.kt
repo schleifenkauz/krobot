@@ -8,7 +8,7 @@ import krobot.ast.Element
 import krobot.ast.NoElement
 import krobot.ast.RawElement
 
-public class IndentedWriter(private val out: Appendable) {
+class IndentedWriter(private val out: Appendable) {
     private var indentation = ""
     private var isNewLine = true
 
@@ -16,7 +16,7 @@ public class IndentedWriter(private val out: Appendable) {
         out.append(indentation)
     }
 
-    public fun append(str: String) {
+    fun append(str: String) {
         if (isNewLine) indent()
         out.append(str)
         isNewLine = false
@@ -28,25 +28,25 @@ public class IndentedWriter(private val out: Appendable) {
         isNewLine = false
     }
 
-    public fun append(element: Element) {
+    fun append(element: Element) {
         element.append(this)
     }
 
-    public fun space() {
+    fun space() {
         append(' ')
     }
 
-    public fun appendLine() {
+    fun appendLine() {
         out.appendLine()
         isNewLine = true
     }
 
-    public fun appendLine(str: String) {
+    fun appendLine(str: String) {
         append(str)
         appendLine()
     }
 
-    public fun append(element: Any?) {
+    fun append(element: Any?) {
         when (element) {
             null -> {
             }
@@ -57,7 +57,7 @@ public class IndentedWriter(private val out: Appendable) {
         }
     }
 
-    public fun join(
+    fun join(
         elements: Iterable<Any>?,
         separator: Element = NoElement,
         prefix: Element = NoElement,
@@ -73,7 +73,7 @@ public class IndentedWriter(private val out: Appendable) {
         append(postfix)
     }
 
-    public fun join(
+    fun join(
         elements: Iterable<Any>?,
         separator: String = ", ",
         prefix: String = "",
@@ -82,7 +82,7 @@ public class IndentedWriter(private val out: Appendable) {
         join(elements, RawElement(separator), RawElement(prefix), RawElement(postfix))
     }
 
-    public fun join(vararg elements: Any?) {
+    fun join(vararg elements: Any?) {
         if (elements.any { it == null }) return
         for (element in elements) append(element)
     }
@@ -97,7 +97,7 @@ public class IndentedWriter(private val out: Appendable) {
         indentation = indentation.drop(4)
     }
 
-    public inline fun indented(block: IndentedWriter.() -> Unit) {
+    inline fun indented(block: IndentedWriter.() -> Unit) {
         addIndentation()
         block()
         dropIndentation()

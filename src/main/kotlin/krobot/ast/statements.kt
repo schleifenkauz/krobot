@@ -6,7 +6,7 @@ package krobot.ast
 
 import krobot.impl.IndentedWriter
 
-public sealed interface Statement : BlockElement
+sealed interface Statement : BlockElement
 
 internal data class Assignment(private val assigned: Assignable, private val value: Expr) : Statement {
     override fun append(out: IndentedWriter) = with(out) {

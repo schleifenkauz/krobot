@@ -5,4 +5,4 @@
 package krobot.api
 
 @DslMarker
-public annotation class KotlinRobotDsl
+annotation class KotlinRobotDsl
